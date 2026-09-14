@@ -5,6 +5,7 @@ const {
   sendPrivateReply,
   sendGetLinkButton,
   sendFinalLinkButton,
+  replyToComment,
 } = require('./instagram');
 
 const app = express();
@@ -92,6 +93,8 @@ app.post('/webhook', async (req, res) => {
       for (const messagingEvent of entry.messaging || []) {
         if (messagingEvent.postback) {
           await handlePostback(messagingEvent);
+        } else if (messagingEvent.message && !messagingEvent.message.is_echo) {
+          await handleIncomingMessage(messagingEvent);
         }
       }
     }
@@ -110,10 +113,13 @@ async function handleComment(value) {
 
   console.log(`Trigger keyword "${matchedKeyword}" matched on comment ${commentId}`);
 
-  // STEP 2: send the private reply (TEXT ONLY - Meta does not allow buttons here)
+  // STEP 2: send the private reply (TEXT ONLY - Meta does not allow buttons here).
+  // IMPORTANT: this message alone does NOT open a messaging window. Meta only opens
+  // the 24-hour window once the user replies back - so we ask them to reply here,
+  // and send the actual button once their reply arrives (see handleIncomingMessage).
   const privateReplyRes = await sendPrivateReply(
     commentId,
-    "Thanks for commenting! 🙌 Tap the button below and I'll send your link right away."
+    "Thanks for commenting! 🙌 Reply with any message and I'll send your link right away."
   );
 
   const recipientId = privateReplyRes?.recipient_id;
@@ -122,10 +128,27 @@ async function handleComment(value) {
     return;
   }
 
-  // Remember this so we know what to do when they tap the button
+  // Publicly reply under the comment so they (and others) see a visible nudge
+  try {
+    await replyToComment(commentId, '📩 Check your DMs! We just sent you something.');
+  } catch (err) {
+    // Not fatal - the private reply already succeeded, so just log and continue
+    console.error('Could not post public comment reply:', err.response?.data || err.message);
+  }
+
+  // Remember this so we know what to do once they reply (which opens the window)
   pendingRequests.set(recipientId, { commentId, createdAt: Date.now() });
 
-  // STEP 3: now that we have a normal recipient_id, we can send a real button message
+  console.log(`Private reply sent to ${recipientId}. Waiting for their reply to open the messaging window.`);
+}
+
+async function handleIncomingMessage(messagingEvent) {
+  const recipientId = messagingEvent.sender?.id;
+  if (!recipientId || !pendingRequests.has(recipientId)) return; // not someone we're waiting on
+
+  console.log(`${recipientId} replied - messaging window is now open. Sending button.`);
+
+  // Window is open now, so this button message is allowed to go through
   await sendGetLinkButton(recipientId);
 }
 

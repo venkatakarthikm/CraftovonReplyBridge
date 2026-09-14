@@ -86,8 +86,23 @@ async function sendFinalLinkButton(recipientId, destinationUrl) {
   );
 }
 
+/**
+ * Publicly reply under the comment itself (visible to everyone), nudging the
+ * user to check their DMs where the private reply/link actually lives.
+ * Docs: https://developers.facebook.com/docs/instagram-api/guides/comment-moderation
+ */
+async function replyToComment(commentId, text) {
+  const url = `${BASE_URL}/${commentId}/replies`;
+  return axios.post(
+    url,
+    { message: text },
+    { params: { access_token: ACCESS_TOKEN } }
+  );
+}
+
 module.exports = {
   sendPrivateReply,
   sendGetLinkButton,
   sendFinalLinkButton,
+  replyToComment,
 };
