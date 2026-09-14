@@ -24,6 +24,39 @@ async function sendPrivateReply(commentId, text) {
 }
 
 /**
+ * EXPERIMENTAL: try sending a button template directly as the private reply,
+ * using recipient.comment_id instead of recipient.id. Docs say private replies
+ * are text-only, but real-world bots appear to do exactly this - testing to confirm.
+ */
+async function sendPrivateReplyWithButton(commentId, text, buttonTitle, buttonPayload) {
+  const url = `${BASE_URL}/${IG_ID}/messages`;
+  const res = await axios.post(
+    url,
+    {
+      recipient: { comment_id: commentId },
+      message: {
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'button',
+            text,
+            buttons: [
+              {
+                type: 'postback',
+                title: buttonTitle,
+                payload: buttonPayload,
+              },
+            ],
+          },
+        },
+      },
+    },
+    { params: { access_token: ACCESS_TOKEN } }
+  );
+  return res.data;
+}
+
+/**
  * STEP 3: Send a button template with a single postback button.
  * This is a normal DM (not a comment reply), so buttons are allowed.
  * Docs: https://developers.facebook.com/docs/messenger-platform/send-messages/template/button
@@ -102,6 +135,7 @@ async function replyToComment(commentId, text) {
 
 module.exports = {
   sendPrivateReply,
+  sendPrivateReplyWithButton,
   sendGetLinkButton,
   sendFinalLinkButton,
   replyToComment,

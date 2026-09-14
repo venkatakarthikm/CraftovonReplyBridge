@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const {
   sendPrivateReply,
+  sendPrivateReplyWithButton,
   sendGetLinkButton,
   sendFinalLinkButton,
   replyToComment,
@@ -113,14 +114,24 @@ async function handleComment(value) {
 
   console.log(`Trigger keyword "${matchedKeyword}" matched on comment ${commentId}`);
 
-  // STEP 2: send the private reply (TEXT ONLY - Meta does not allow buttons here).
-  // IMPORTANT: this message alone does NOT open a messaging window. Meta only opens
-  // the 24-hour window once the user replies back - so we ask them to reply here,
-  // and send the actual button once their reply arrives (see handleIncomingMessage).
-  const privateReplyRes = await sendPrivateReply(
-    commentId,
-    "Thanks for commenting! 🙌 Reply with any message and I'll send your link right away."
-  );
+  // EXPERIMENTAL: try sending the button directly as the private reply.
+  // If Instagram rejects this, we'll fall back to text-only + wait-for-reply.
+  let privateReplyRes;
+  try {
+    privateReplyRes = await sendPrivateReplyWithButton(
+      commentId,
+      "Thanks for commenting! 🙌 Hit the button below to get your link.",
+      'Send me the link',
+      'GET_LINK'
+    );
+    console.log('Private reply WITH BUTTON succeeded.');
+  } catch (err) {
+    console.error('Button-in-private-reply failed, falling back to text-only:', err.response?.data || err.message);
+    privateReplyRes = await sendPrivateReply(
+      commentId,
+      "Thanks for commenting! 🙌 Reply with any message and I'll send your link right away."
+    );
+  }
 
   const recipientId = privateReplyRes?.recipient_id;
   if (!recipientId) {
