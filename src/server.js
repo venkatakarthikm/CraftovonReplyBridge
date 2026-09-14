@@ -1,0 +1,117 @@
+require('dotenv').config();
+const express = require('express');
+const bodyParser = require('body-parser');
+const {
+  sendPrivateReply,
+  sendGetLinkButton,
+  sendFinalLinkButton,
+} = require('./instagram');
+
+const app = express();
+app.use(bodyParser.json());
+
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
+const TRIGGER_KEYWORDS = (process.env.TRIGGER_KEYWORDS || '')
+  .split(',')
+  .map((k) => k.trim().toLowerCase())
+  .filter(Boolean);
+
+// In-memory store just to remember "this recipient asked about which post/comment"
+// Replace with a real database (Redis/Postgres/etc) before going to production.
+const pendingRequests = new Map(); // recipientId -> { commentId, createdAt }
+
+/**
+ * STEP 0: Meta calls this once when you register your webhook in the App Dashboard.
+ * It must echo back the "hub.challenge" value if the verify token matches.
+ */
+app.get('/webhook', (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+    console.log('Webhook verified.');
+    return res.status(200).send(challenge);
+  }
+  return res.sendStatus(403);
+});
+
+/**
+ * STEP 1-4: Meta POSTs every event here - comments AND message/postback events
+ * both arrive on the same webhook URL, differentiated by the payload shape.
+ */
+app.post('/webhook', async (req, res) => {
+  // Always respond 200 fast - Meta retries aggressively if you don't
+  res.sendStatus(200);
+
+  try {
+    const body = req.body;
+    if (body.object !== 'instagram') return;
+
+    for (const entry of body.entry || []) {
+      // --- Case A: someone commented on your reel/post ---
+      for (const change of entry.changes || []) {
+        if (change.field === 'comments') {
+          await handleComment(change.value);
+        }
+      }
+
+      // --- Case B: a message event (postback button tap, or plain reply) ---
+      for (const messagingEvent of entry.messaging || []) {
+        if (messagingEvent.postback) {
+          await handlePostback(messagingEvent);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error processing webhook event:', err.response?.data || err.message);
+  }
+});
+
+async function handleComment(value) {
+  const commentText = (value.text || '').toLowerCase();
+  const commentId = value.id;
+  const fromUserId = value.from?.id;
+
+  const matchedKeyword = TRIGGER_KEYWORDS.find((kw) => commentText.includes(kw));
+  if (!matchedKeyword) return; // not a trigger comment, ignore
+
+  console.log(`Trigger keyword "${matchedKeyword}" matched on comment ${commentId}`);
+
+  // STEP 2: send the private reply (TEXT ONLY - Meta does not allow buttons here)
+  const privateReplyRes = await sendPrivateReply(
+    commentId,
+    "Thanks for commenting! 🙌 Tap the button below and I'll send your link right away."
+  );
+
+  const recipientId = privateReplyRes?.recipient_id;
+  if (!recipientId) {
+    console.error('No recipient_id returned - cannot send follow-up button.');
+    return;
+  }
+
+  // Remember this so we know what to do when they tap the button
+  pendingRequests.set(recipientId, { commentId, createdAt: Date.now() });
+
+  // STEP 3: now that we have a normal recipient_id, we can send a real button message
+  await sendGetLinkButton(recipientId);
+}
+
+async function handlePostback(messagingEvent) {
+  const recipientId = messagingEvent.sender?.id;
+  const payload = messagingEvent.postback?.payload;
+
+  if (payload !== 'GET_LINK') return; // not the button we care about
+
+  console.log(`User ${recipientId} tapped "Get Link"`);
+
+  // STEP 5: send the final message with the actual redirect button
+  await sendFinalLinkButton(recipientId, process.env.DESTINATION_LINK);
+
+  pendingRequests.delete(recipientId);
+}
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Webhook server listening on port ${PORT}`);
+});
