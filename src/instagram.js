@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const GRAPH_VERSION = 'v21.0';
-const BASE_URL = `https://graph.facebook.com/${GRAPH_VERSION}`;
+const BASE_URL = `https://graph.instagram.com/${GRAPH_VERSION}`;
 const ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const IG_ID = process.env.IG_ID;
 
