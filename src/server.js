@@ -21,6 +21,38 @@ const TRIGGER_KEYWORDS = (process.env.TRIGGER_KEYWORDS || '')
 const pendingRequests = new Map(); // recipientId -> { commentId, createdAt }
 
 /**
+ * Required by Meta before your app can go Live. A minimal, real privacy
+ * policy describing what data this automation touches.
+ */
+app.get('/privacy-policy', (req, res) => {
+  res.type('html').send(`
+    <html>
+      <head><title>Privacy Policy - Craftovon ReplyBridge</title></head>
+      <body style="font-family: sans-serif; max-width: 640px; margin: 40px auto; line-height: 1.6;">
+        <h1>Privacy Policy</h1>
+        <p>Last updated: ${new Date().toISOString().slice(0, 10)}</p>
+        <p>Craftovon ReplyBridge is an Instagram automation tool operated by Craftovon.
+        It responds to comments on our own Instagram posts by sending the commenter
+        a private reply and, if they request it, a direct message containing a link.</p>
+        <h2>What we collect</h2>
+        <p>We access the text of comments left on our Instagram posts, the commenter's
+        Instagram user ID, and message events (button taps) needed to deliver the
+        requested link via Instagram Direct.</p>
+        <h2>How we use it</h2>
+        <p>This data is used solely to detect trigger keywords in comments and to send
+        the corresponding private reply and link. We do not sell or share this data
+        with third parties, and do not use it for advertising.</p>
+        <h2>Data retention</h2>
+        <p>Comment and message data is processed to deliver the automated reply and is
+        not stored beyond what is necessary for that purpose.</p>
+        <h2>Contact</h2>
+        <p>For questions or data deletion requests, contact: virat18mvk@gmail.com</p>
+      </body>
+    </html>
+  `);
+});
+
+/**
  * STEP 0: Meta calls this once when you register your webhook in the App Dashboard.
  * It must echo back the "hub.challenge" value if the verify token matches.
  */
