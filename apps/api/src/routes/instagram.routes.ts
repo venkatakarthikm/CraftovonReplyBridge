@@ -34,7 +34,7 @@ router.get('/authorize', requireAuth, (req, res) => {
     state,
   });
   const authUrl = `https://api.instagram.com/oauth/authorize?${params.toString()}`;
-  res.redirect(authUrl);
+  res.json({ data: { authUrl } });
 });
 
 /** GET /oauth/instagram/callback — exchange code for tokens, upsert IgAccount */
