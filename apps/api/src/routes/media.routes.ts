@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import pino from 'pino';
 import { Types } from 'mongoose';
-import { MediaModel, CommentEventModel, IgAccountModel } from '@replybridge/db';
+import { MediaModel, CommentEventModel, IgAccountModel, UserModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../middleware/errors.js';
 import { backfillMediaSync } from '../services/backfill.service.js';
@@ -73,6 +73,12 @@ router.post('/sync', async (req, res, next) => {
     }
     try {
       await backfillMediaSync(String(account._id), account.igId);
+      
+      // Update checklist
+      await UserModel.updateOne(
+        { _id: req.user!.sub },
+        { $addToSet: { 'onboarding.checklist': 'reels_imported' } }
+      );
     } catch (e) {
       logger.error({ e }, 'Failed to sync media from Instagram');
       throw new AppError(500, 'sync_error', 'Failed to pull reels from Instagram.');

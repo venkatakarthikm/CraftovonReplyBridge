@@ -31,6 +31,25 @@ export default function AppLayout() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Keep user profile up to date (e.g., after OAuth redirects)
+  useEffect(() => {
+    if (user?.id) {
+      import('../../api/client.js').then(({ api }) => {
+        api.get('/auth/me').then((res) => {
+          const { _id, email, name, role, plan, onboarding } = res.data.data;
+          useAuthStore.getState().updateUser({
+            id: _id,
+            email,
+            name,
+            role,
+            plan,
+            onboarding
+          });
+        }).catch(() => {});
+      });
+    }
+  }, [user?.id]);
+
   const handleLogout = () => {
     clearAuth();
     navigate('/login');
