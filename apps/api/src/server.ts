@@ -64,12 +64,12 @@ app.use('/api/v1/templates', dashboardRateLimit, templatesRouter);
 app.use('/api/v1/inbox', dashboardRateLimit, inboxRouter);
 app.use('/api/v1/help', helpRouter); // public — no auth
 
+import mongoose from 'mongoose';
+
 // ── Health check ──────────────────────────────────────────────────────────
 app.get('/healthz', async (_req, res) => {
   try {
-    // Ping MongoDB via mongoose
-    const { connection } = await import('mongoose');
-    const dbState = connection.readyState; // 1 = connected
+    const dbState = mongoose.connection.readyState; // 1 = connected
 
     res.json({
       status: 'ok',
@@ -77,8 +77,9 @@ app.get('/healthz', async (_req, res) => {
       db: dbState === 1 ? 'connected' : 'disconnected',
       env: env.NODE_ENV,
     });
-  } catch {
-    res.status(500).json({ status: 'error' });
+  } catch (err) {
+    logger.error({ err }, 'Healthcheck error');
+    res.status(500).json({ status: 'error', error: String(err) });
   }
 });
 
