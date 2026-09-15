@@ -59,7 +59,7 @@ router.get('/callback', async (req, res, next) => {
       code,
       env.META_APP_ID,
       env.META_APP_SECRET,
-      `${env.API_URL}/instagram/callback`
+      `${env.API_URL}/oauth/instagram/callback`
     );
 
     // Encrypt token — NEVER store plaintext
