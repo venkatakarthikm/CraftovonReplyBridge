@@ -38,7 +38,7 @@ export default function Settings() {
       <div className="card p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <h2 className="section-title">Instagram accounts</h2>
-          <a href="/api/v1/instagram/authorize" className="btn-primary text-xs py-2">
+          <a href={`${(import.meta as any).env.VITE_API_URL || '/api/v1'}/instagram/authorize`} className="btn-primary text-xs py-2">
             <Instagram className="w-3.5 h-3.5" />
             Connect account
           </a>
