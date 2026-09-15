@@ -32,7 +32,7 @@ export default function Settings() {
 
   const handleConnectAccount = async () => {
     try {
-      const res = await api.get('/instagram/authorize');
+      const res = await api.get('/oauth/instagram/authorize');
       window.location.href = res.data.data.authUrl;
     } catch (e) {
       console.error('Failed to get auth URL:', e);
