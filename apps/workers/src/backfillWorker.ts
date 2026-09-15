@@ -77,15 +77,17 @@ async function backfillMedia(job: Job): Promise<void> {
               igAccountId: account._id,
               igId,
               mediaId: item.id,
-              type: mediaType,
-              caption: item.caption ?? '',
-              permalink: item.permalink ?? '',
-              thumbnailUrl: item.thumbnail_url ?? '',
               postedAt: new Date(item.timestamp),
               source: 'backfill',
               commentCount: 0,
               automationCount: 0,
             },
+            $set: {
+              type: mediaType,
+              caption: item.caption ?? '',
+              permalink: item.permalink ?? '',
+              thumbnailUrl: item.thumbnail_url ?? '',
+            }
           },
           { upsert: true }
         );
