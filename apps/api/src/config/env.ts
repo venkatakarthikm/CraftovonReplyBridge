@@ -35,7 +35,7 @@ const EnvSchema = z.object({
 
   // Email
   SMTP_URL: z.string().optional(),
-  EMAIL_FROM: z.string().email().default('noreply@craftovon.com'),
+  EMAIL_FROM: z.string().email().default('virat18mvk@gmail.com'),
 
   // Billing
   STRIPE_SECRET_KEY: z.string().optional(),

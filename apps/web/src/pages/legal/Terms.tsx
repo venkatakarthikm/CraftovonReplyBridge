@@ -22,13 +22,13 @@ export default function Terms() {
           { title: '1. Acceptance', body: 'By using ReplyBridge ("Service"), you agree to these Terms. If you do not agree, do not use the Service.' },
           { title: '2. Service description', body: 'ReplyBridge automates Instagram comment-to-DM replies. You retain full control; the Service acts on your explicit instructions only.' },
           { title: '3. Platform compliance', body: 'You must comply with Instagram\'s Community Guidelines and Meta\'s Platform Terms. You may not use the Service to send spam, violate Instagram rate limits, or harass users.' },
-          { title: '4. Account responsibility', body: 'You are responsible for all activity under your account, including keeping your credentials secure. Notify us immediately of unauthorized access at support@craftovon.com.' },
+          { title: '4. Account responsibility', body: 'You are responsible for all activity under your account, including keeping your credentials secure. Notify us immediately of unauthorized access at virat18mvk@gmail.com.' },
           { title: '5. Subscription & billing', body: 'Free plan features are provided at no charge. Paid plans are billed monthly. You may cancel at any time; access continues until the billing period ends. No refunds for partial periods.' },
           { title: '6. Termination', body: 'We may suspend or terminate your account for violation of these Terms, non-payment, or misuse of the Instagram API. You may delete your account at any time.' },
           { title: '7. Limitation of liability', body: 'ReplyBridge is provided "as is". We are not liable for any indirect, incidental, or consequential damages arising from your use of the Service, including Instagram account actions.' },
           { title: '8. Governing law', body: 'These Terms are governed by the laws of the jurisdiction in which Craftovon operates. Disputes shall be resolved by binding arbitration.' },
           { title: '9. Changes', body: 'We may update these Terms. We will notify you by email and in-app notice at least 14 days before material changes take effect.' },
-          { title: '10. Contact', body: 'legal@craftovon.com' },
+          { title: '10. Contact', body: 'virat18mvk@gmail.com' },
         ].map(({ title, body }) => (
           <section key={title} className="mb-7">
             <h2 className="text-base font-semibold text-white mb-2">{title}</h2>

@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
           <p className="text-white/70">
             Craftovon ("we", "our", "us") operates ReplyBridge, an Instagram comment-to-DM
             automation SaaS. Our registered address and Data Protection contact:
-            <strong className="text-white"> privacy@craftovon.com</strong>.
+            <strong className="text-white"> virat18mvk@gmail.com</strong>.
           </p>
         </section>
 
@@ -83,7 +83,7 @@ export default function PrivacyPolicy() {
           <h2 className="text-xl font-semibold text-white mb-3">6. Your rights</h2>
           <p className="text-white/70">
             You can request access, correction, or deletion of your data at any time.
-            Email <a href="mailto:privacy@craftovon.com" className="text-brand-400">privacy@craftovon.com</a> or
+            Email <a href="mailto:virat18mvk@gmail.com" className="text-brand-400">virat18mvk@gmail.com</a> or
             visit the <Link to="/data-deletion" className="text-brand-400">Data Deletion page</Link>.
             We will respond within 30 days.
           </p>
@@ -92,7 +92,7 @@ export default function PrivacyPolicy() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-white mb-3">7. Contact</h2>
           <p className="text-white/70">
-            For privacy questions: <a href="mailto:privacy@craftovon.com" className="text-brand-400">privacy@craftovon.com</a>
+            For privacy questions: <a href="mailto:virat18mvk@gmail.com" className="text-brand-400">virat18mvk@gmail.com</a>
           </p>
         </section>
       </div>

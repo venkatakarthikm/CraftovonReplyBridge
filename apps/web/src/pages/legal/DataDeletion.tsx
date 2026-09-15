@@ -38,7 +38,7 @@ export default function DataDeletion() {
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-brand-500/20 text-brand-300 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-              <span>If you no longer have account access, email us at <strong className="text-white">privacy@craftovon.com</strong> with the subject <em>"Data Deletion Request"</em>. We will process your request within 30 days.</span>
+              <span>If you no longer have account access, email us at <strong className="text-white">virat18mvk@gmail.com</strong> with the subject <em>"Data Deletion Request"</em>. We will process your request within 30 days.</span>
             </li>
             <li className="flex gap-3">
               <span className="w-6 h-6 rounded-full bg-brand-500/20 text-brand-300 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
@@ -48,7 +48,7 @@ export default function DataDeletion() {
         </div>
 
         <a
-          href="mailto:privacy@craftovon.com?subject=Data%20Deletion%20Request"
+          href="mailto:virat18mvk@gmail.com?subject=Data%20Deletion%20Request"
           className="btn-primary"
         >
           <Mail className="w-4 h-4" />
