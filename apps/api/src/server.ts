@@ -56,7 +56,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // ── API v1 routes ─────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/instagram', instagramRouter);
+app.use('/api/v1/oauth/instagram', instagramRouter);
 app.use('/api/v1/media', dashboardRateLimit, mediaRouter);
 app.use('/api/v1/billing', dashboardRateLimit, billingRouter);
 app.use('/api/v1/automations', dashboardRateLimit, automationRouter);
