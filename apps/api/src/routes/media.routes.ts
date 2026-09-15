@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import pino from 'pino';
 import { Types } from 'mongoose';
-import { MediaModel, CommentEventModel, IgAccountModel, UserModel } from '@replybridge/db';
+import { MediaModel, CommentEventModel, IgAccountModel, UserModel, AutomationModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../middleware/errors.js';
 import { backfillMediaSync } from '../services/backfill.service.js';
@@ -39,6 +39,19 @@ router.get('/', async (req, res, next) => {
       .sort({ postedAt: -1, _id: -1 })
       .limit(Math.min(Number(limit), 100))
       .lean();
+
+    // Attach automationId to media items that have automations so the UI toggle works
+    if (items.length > 0) {
+      const mediaIds = items.map(item => item.mediaId);
+      const automations = await AutomationModel.find({ mediaId: { $in: mediaIds } }).lean();
+      
+      for (const item of items) {
+        const automation = automations.find(a => a.mediaId === item.mediaId);
+        if (automation) {
+          (item as any).automationId = automation._id;
+        }
+      }
+    }
 
     const last = items[items.length - 1];
     const nextCursor = last && items.length === Number(limit)
