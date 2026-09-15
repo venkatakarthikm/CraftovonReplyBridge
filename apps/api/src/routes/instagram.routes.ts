@@ -28,7 +28,7 @@ router.get('/authorize', requireAuth, (req, res) => {
   const state = signOAuthState(req.user!.sub);
   const params = new URLSearchParams({
     client_id: env.META_APP_ID,
-    redirect_uri: `${env.API_URL}/oauth/instagram/callback`,
+    redirect_uri: `${env.API_URL}/instagram/callback`,
     scope: SCOPES,
     response_type: 'code',
     state,
@@ -59,7 +59,7 @@ router.get('/callback', async (req, res, next) => {
       code,
       env.META_APP_ID,
       env.META_APP_SECRET,
-      `${env.API_URL}/oauth/instagram/callback`
+      `${env.API_URL}/instagram/callback`
     );
 
     // Encrypt token — NEVER store plaintext
