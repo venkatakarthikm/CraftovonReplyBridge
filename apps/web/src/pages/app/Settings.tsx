@@ -11,16 +11,16 @@ export default function Settings() {
 
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['ig-accounts'],
-    queryFn: () => api.get('/instagram/accounts').then((r) => r.data.data),
+    queryFn: () => api.get('/oauth/instagram/accounts').then((r) => r.data.data),
   });
 
   const disconnectMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/instagram/accounts/${id}`),
+    mutationFn: (id: string) => api.delete(`/oauth/instagram/accounts/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ig-accounts'] }),
   });
 
   const refreshMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/instagram/accounts/${id}/refresh`),
+    mutationFn: (id: string) => api.post(`/oauth/instagram/accounts/${id}/refresh`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ig-accounts'] }),
   });
 

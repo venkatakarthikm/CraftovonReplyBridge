@@ -18,7 +18,7 @@ export default function Reels() {
 
   const { data: accounts } = useQuery({
     queryKey: ['ig-accounts'],
-    queryFn: () => api.get('/instagram/accounts').then((r) => r.data.data),
+    queryFn: () => api.get('/oauth/instagram/accounts').then((r) => r.data.data),
   });
 
   const igAccountId = accounts?.[0]?._id;
