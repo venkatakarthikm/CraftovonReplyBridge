@@ -101,7 +101,7 @@ export async function exchangeCodeForTokens(
     access_token: string;
     user_id: number;
   }>(
-    'https://api.instagram.com/oauth/access_token',
+    'https://www.instagram.com/oauth/access_token',
     new URLSearchParams({
       client_id: appId,
       client_secret: appSecret,
