@@ -100,7 +100,11 @@ router.get('/callback', async (req, res, next) => {
     }
 
     // Trigger backfill (import last 100 media)
-    await enqueueBackfill(String(account._id), igId);
+    try {
+      await enqueueBackfill(String(account._id), igId);
+    } catch (e) {
+      logger.error({ e, igId }, 'Failed to enqueue backfill job (check Redis connection)');
+    }
 
     res.redirect(`${env.BASE_URL}/reels?connected=1`);
   } catch (e) { next(e); }

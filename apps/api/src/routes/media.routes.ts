@@ -69,7 +69,12 @@ router.post('/sync', async (req, res, next) => {
     if (!account || String(account.userId) !== req.user!.sub) {
       throw new AppError(403, 'forbidden', 'Not your IG account');
     }
-    await enqueueBackfill(String(account._id), account.igId);
+    try {
+      await enqueueBackfill(String(account._id), account.igId);
+    } catch (e) {
+      logger.error({ e }, 'Failed to enqueue backfill job (check Redis connection)');
+      throw new AppError(500, 'queue_error', 'Failed to start sync. Is Redis running?');
+    }
     res.json({ data: { message: 'Backfill enqueued' } });
   } catch (e) { next(e); }
 });
