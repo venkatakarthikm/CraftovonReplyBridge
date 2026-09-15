@@ -1,5 +1,5 @@
 // apps/web/src/pages/auth/Login.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Zap, Eye, EyeOff } from 'lucide-react';
 import { api } from '../../api/client.js';
@@ -11,8 +11,12 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setAuth } = useAuthStore();
+  const { setAuth, token } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) navigate('/dashboard', { replace: true });
+  }, [token, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

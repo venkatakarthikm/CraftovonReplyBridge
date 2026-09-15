@@ -22,8 +22,8 @@ const logger = pino({ name: 'auth' });
 const BCRYPT_ROUNDS = 12;
 const COOKIE_OPTS = {
   httpOnly: true,
-  secure: process.env['NODE_ENV'] === 'production',
-  sameSite: 'lax' as const,
+  secure: true, // Must be true for sameSite: 'none'
+  sameSite: 'none' as const, // Required for cross-domain API <-> Frontend
   maxAge: 30 * 24 * 3600 * 1000, // 30 days
   path: '/api/v1/auth/refresh',
 };
