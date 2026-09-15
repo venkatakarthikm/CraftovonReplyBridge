@@ -18,14 +18,36 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, clear auth and redirect to login
+// On 401, attempt to refresh token before logging out
 api.interceptors.response.use(
   (r) => r,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/login' && originalRequest.url !== '/auth/refresh') {
+      originalRequest._retry = true;
+      try {
+        const res = await api.post('/auth/refresh');
+        const newToken = res.data.data.accessToken;
+        // Update the token in Zustand store (doesn't wipe user data)
+        useAuthStore.getState().setAuth(newToken, useAuthStore.getState().user!);
+        // Update the failed request with the new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        // Retry the original request
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed, token is completely expired/invalid
+        useAuthStore.getState().clearAuth();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+
     if (error.response?.status === 401) {
       useAuthStore.getState().clearAuth();
       window.location.href = '/login';
     }
+    
     return Promise.reject(error);
   }
 );
