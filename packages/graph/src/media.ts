@@ -150,3 +150,16 @@ export async function exchangeCodeForTokens(
     accountType: profileRes.data.account_type,
   };
 }
+
+export function mapMediaType(item: { media_product_type?: string; media_type?: string }): 'REEL' | 'POST' | 'CAROUSEL' | 'STORY' | 'LIVE' {
+  const product = item.media_product_type?.toUpperCase();
+  if (product === 'REELS') return 'REEL';
+  if (product === 'STORY') return 'STORY';
+  if (product === 'AD' || product === 'FEED') return 'POST';
+
+  const t = item.media_type?.toUpperCase();
+  if (t === 'VIDEO') return 'REEL';
+  if (t === 'CAROUSEL_ALBUM') return 'CAROUSEL';
+
+  return 'POST';
+}

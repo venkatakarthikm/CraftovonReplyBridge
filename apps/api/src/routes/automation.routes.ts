@@ -2,7 +2,7 @@
 // Core CRUD for automations + toggle + duplicate + test
 import { Router } from 'express';
 import { Types } from 'mongoose';
-import { AutomationModel, IgAccountModel, AuditLogModel, MessageLogModel } from '@replybridge/db';
+import { AutomationModel, IgAccountModel, AuditLogModel, MessageLogModel, MediaModel } from '@replybridge/db';
 import { CreateAutomationSchema, PatchAutomationSchema, ToggleAutomationSchema } from '@replybridge/schemas';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError, validate } from '../middleware/errors.js';
@@ -59,6 +59,13 @@ router.post('/', async (req, res, next) => {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     });
+
+    if (body.mediaId && automation.enabled) {
+      await MediaModel.updateOne(
+        { mediaId: body.mediaId, igAccountId: account._id },
+        { $inc: { automationCount: 1 } }
+      );
+    }
 
     // If backfill enabled, enqueue immediately
     if (body.backfill?.enabled && body.mediaId) {
@@ -137,6 +144,13 @@ router.patch('/:id/toggle', async (req, res, next) => {
     automation.enabled = enabled;
     await automation.save();
 
+    if (automation.mediaId) {
+      await MediaModel.updateOne(
+        { mediaId: automation.mediaId, igAccountId: automation.igAccountId },
+        { $inc: { automationCount: enabled ? 1 : -1 } }
+      );
+    }
+
     await AuditLogModel.create({
       userId: req.user!.sub,
       action: `automation.${enabled ? 'enable' : 'disable'}`,
@@ -160,6 +174,13 @@ router.delete('/:id', async (req, res, next) => {
       throw new AppError(404, 'not_found', 'Automation not found');
     }
     await AutomationModel.deleteOne({ _id: automation._id });
+    
+    if (automation.mediaId && automation.enabled) {
+      await MediaModel.updateOne(
+        { mediaId: automation.mediaId, igAccountId: automation.igAccountId },
+        { $inc: { automationCount: -1 } }
+      );
+    }
     await AuditLogModel.create({
       userId: req.user!.sub,
       action: 'automation.delete',
@@ -191,6 +212,10 @@ router.post('/:id/duplicate', async (req, res, next) => {
     (dup as Record<string, unknown>)['version'] = 0;
     (dup as Record<string, unknown>)['stats'] = { commentsMatched: 0, dmsSent: 0, linkTaps: 0, errors: 0 };
     const created = await AutomationModel.create(dup);
+
+    // Note: duplicated automations are created with enabled: false, so we do NOT increment the automationCount yet.
+    // When the user toggles it ON, the toggle handler will increment it.
+
     res.status(201).json({ data: created });
   } catch (e) { next(e); }
 });

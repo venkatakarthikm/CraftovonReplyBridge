@@ -1,12 +1,12 @@
 import pino from 'pino';
 import { IgAccountModel, MediaModel } from '@replybridge/db';
-import { GraphMediaClient } from '@replybridge/graph/media';
+import { GraphMediaClient, mapMediaType } from '@replybridge/graph/media';
 import { decrypt } from './crypto.js';
 
 const logger = pino({ name: 'backfill-service' });
 const MAX_MEDIA_IMPORT = 100;
 
-export async function backfillMediaSync(igAccountId: string, igId: string): Promise<void> {
+export async function backfillMediaSync(igAccountId: string, igId: string): Promise<{ imported: number; failed: number }> {
   const account = await IgAccountModel.findById(igAccountId).select('+tokenCipher');
   if (!account) throw new Error(`Account ${igAccountId} not found`);
   const accessToken = decrypt(account.tokenCipher);
@@ -14,6 +14,7 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
   const mediaClient = new GraphMediaClient(accessToken);
 
   let imported = 0;
+  let failed = 0;
   let cursor: string | undefined;
 
   while (imported < MAX_MEDIA_IMPORT) {
@@ -24,12 +25,7 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
     );
 
     for (const item of items) {
-      const mediaType = (item.media_product_type ?? item.media_type).toUpperCase() as
-        | 'REEL'
-        | 'POST'
-        | 'CAROUSEL'
-        | 'STORY'
-        | 'LIVE';
+      const mediaType = mapMediaType(item);
 
       try {
         await MediaModel.updateOne(
@@ -52,8 +48,14 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
           { upsert: true }
         );
         imported++;
-      } catch {
-        // Skip duplicates silently
+      } catch (err) {
+        const code = (err as { code?: number }).code;
+        if (code === 11000) {
+          imported++;
+          continue;
+        }
+        failed++;
+        logger.error({ err, mediaId: item.id }, 'Media insert failed');
       }
     }
 
@@ -61,5 +63,6 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
     cursor = paging.cursors.after;
   }
 
-  logger.info({ igId, imported }, 'Media backfill complete (Sync Mode)');
+  logger.info({ igId, imported, failed }, 'Media backfill complete (Sync Mode)');
+  return { imported, failed };
 }

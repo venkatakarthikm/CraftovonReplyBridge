@@ -9,7 +9,7 @@ import {
   AutomationModel,
   CommentEventModel,
 } from '@replybridge/db';
-import { GraphMediaClient } from '@replybridge/graph/media';
+import { GraphMediaClient, mapMediaType } from '@replybridge/graph/media';
 import { GraphCommentsClient } from '@replybridge/graph/comments';
 import { decrypt } from './services/crypto.js';
 
@@ -67,12 +67,7 @@ async function backfillMedia(job: Job): Promise<void> {
     );
 
     for (const item of items) {
-      const mediaType = (item.media_product_type ?? item.media_type).toUpperCase() as
-        | 'REEL'
-        | 'POST'
-        | 'CAROUSEL'
-        | 'STORY'
-        | 'LIVE';
+      const mediaType = mapMediaType(item);
 
       try {
         await MediaModel.updateOne(
@@ -95,8 +90,13 @@ async function backfillMedia(job: Job): Promise<void> {
           { upsert: true }
         );
         imported++;
-      } catch {
-        // Skip duplicates silently
+      } catch (err) {
+        const code = (err as { code?: number }).code;
+        if (code === 11000) {
+          imported++;
+          continue;
+        }
+        logger.error({ err, mediaId: item.id }, 'Media insert failed');
       }
     }
 

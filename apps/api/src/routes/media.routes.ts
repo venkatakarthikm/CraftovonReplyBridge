@@ -72,18 +72,18 @@ router.post('/sync', async (req, res, next) => {
       throw new AppError(403, 'forbidden', 'Not your IG account');
     }
     try {
-      await backfillMediaSync(String(account._id), account.igId);
+      const syncResult = await backfillMediaSync(String(account._id), account.igId);
       
       // Update checklist
       await UserModel.updateOne(
         { _id: req.user!.sub },
         { $addToSet: { 'onboarding.checklist': 'reels_imported' } }
       );
+      res.json({ data: { message: 'Media synced successfully!', ...syncResult } });
     } catch (e) {
       logger.error({ e }, 'Failed to sync media from Instagram');
       throw new AppError(500, 'sync_error', 'Failed to pull reels from Instagram.');
     }
-    res.json({ data: { message: 'Media synced successfully!' } });
   } catch (e) { next(e); }
 });
 
