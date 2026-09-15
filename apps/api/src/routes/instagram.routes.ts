@@ -28,12 +28,12 @@ router.get('/authorize', requireAuth, (req, res) => {
   const state = signOAuthState(req.user!.sub);
   const params = new URLSearchParams({
     client_id: env.META_APP_ID,
-    redirect_uri: `${env.API_URL}/instagram/callback`,
+    redirect_uri: `${env.API_URL}/oauth/instagram/callback`,
     scope: SCOPES,
     response_type: 'code',
     state,
   });
-  const authUrl = `https://api.instagram.com/oauth/authorize?${params.toString()}`;
+  const authUrl = `https://www.instagram.com/oauth/authorize?${params.toString()}`;
   res.json({ data: { authUrl } });
 });
 
