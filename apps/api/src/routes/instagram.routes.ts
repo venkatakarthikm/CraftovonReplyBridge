@@ -50,6 +50,7 @@ router.get('/callback', async (req, res, next) => {
     if (!code || !state) {
       throw new AppError(400, 'invalid_callback', 'Missing code or state');
     }
+    
 
     // Validate CSRF state
     const { sub: userId } = verifyOAuthState(state);

@@ -100,15 +100,21 @@ export async function exchangeCodeForTokens(
   const shortLivedRes = await axios.post<{
     access_token: string;
     user_id: number;
-  }>('https://api.instagram.com/oauth/access_token', null, {
-    params: {
+  }>(
+    'https://api.instagram.com/oauth/access_token',
+    new URLSearchParams({
       client_id: appId,
       client_secret: appSecret,
       grant_type: 'authorization_code',
       redirect_uri: redirectUri,
       code,
-    },
-  });
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  );
   const shortLivedToken = shortLivedRes.data.access_token;
 
   // Step 2: short-lived → long-lived
