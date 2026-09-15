@@ -102,12 +102,12 @@ router.post('/portal', async (req, res, next) => {
     const userId = req.user!.sub;
     const sub = await SubscriptionModel.findOne({ userId });
     
-    if (!sub || !sub.stripeCustomerId) {
+    if (!sub || !(sub as any).stripeCustomerId) {
       return res.status(400).json({ error: 'No active subscription' });
     }
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripeCustomerId,
+      customer: (sub as any).stripeCustomerId,
       return_url: `${process.env['FRONTEND_URL'] ?? 'http://localhost:5173'}/settings`,
     });
 

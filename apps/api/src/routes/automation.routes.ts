@@ -181,7 +181,7 @@ router.post('/:id/duplicate', async (req, res, next) => {
     if (!source || String(source.userId) !== req.user!.sub) {
       throw new AppError(404, 'not_found', 'Automation not found');
     }
-    const dup = source.toObject() as Record<string, unknown>;
+    const dup = source.toObject() as unknown as Record<string, unknown>;
     delete dup['_id'];
     delete dup['createdAt'];
     delete dup['updatedAt'];

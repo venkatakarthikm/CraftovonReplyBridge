@@ -36,7 +36,7 @@ app.use(cors({
 }));
 
 // ── Request logging ───────────────────────────────────────────────────────
-app.use(pinoHttp({ logger }));
+app.use((pinoHttp as any)({ logger }));
 
 // ── Cookie parser ─────────────────────────────────────────────────────────
 app.use(cookieParser());

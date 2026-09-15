@@ -14,13 +14,13 @@ export interface JwtPayload {
 
 export function signAccessToken(payload: Omit<JwtPayload, 'iat' | 'exp'>): string {
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_ACCESS_TTL as jwt.SignOptions['expiresIn'],
+    expiresIn: env.JWT_ACCESS_TTL as any,
   });
 }
 
 export function signRefreshToken(userId: string): string {
   return jwt.sign({ sub: userId, type: 'refresh' }, env.JWT_SECRET, {
-    expiresIn: env.JWT_REFRESH_TTL as jwt.SignOptions['expiresIn'],
+    expiresIn: env.JWT_REFRESH_TTL as any,
   });
 }
 
