@@ -43,10 +43,17 @@ export default function AutomationEditor() {
     },
   });
 
+  const { data: accounts } = useQuery({
+    queryKey: ['ig-accounts'],
+    queryFn: () => api.get('/oauth/instagram/accounts').then((r) => r.data.data),
+  });
+  const igAccountId = accounts?.[0]?._id;
+
   const handleSave = () => {
     saveMutation.mutate({
       name,
       mediaId,
+      igAccountId,
       scope: 'media',
       enabled: true,
       trigger: {
@@ -206,7 +213,7 @@ export default function AutomationEditor() {
         <button
           id="automation-save"
           onClick={handleSave}
-          disabled={saveMutation.isPending || !link}
+          disabled={saveMutation.isPending || !link || !igAccountId}
           className="btn-primary w-full justify-center"
         >
           <Save className="w-4 h-4" />
