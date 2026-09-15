@@ -46,7 +46,7 @@ app.use(cookieParser());
 // Must be mounted BEFORE express.json() to preserve raw body
 app.use('/webhook', express.raw({ type: 'application/json' }), webhookRouter);
 // OAuth callback (no body parsing needed)
-app.use('/oauth/instagram', instagramRouter);
+app.use('/api/v1/oauth/instagram', instagramRouter);
 
 // ── JSON body parsing for all other routes ────────────────────────────────
 // Stripe webhooks must use raw body parsing
@@ -56,7 +56,6 @@ app.use(express.json({ limit: '1mb' }));
 
 // ── API v1 routes ─────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/oauth/instagram', instagramRouter);
 app.use('/api/v1/media', dashboardRateLimit, mediaRouter);
 app.use('/api/v1/billing', dashboardRateLimit, billingRouter);
 app.use('/api/v1/automations', dashboardRateLimit, automationRouter);
