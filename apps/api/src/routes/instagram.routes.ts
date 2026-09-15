@@ -4,9 +4,12 @@
 //   instagram_business_manage_messages (deprecated legacy names Jan 27 2025)
 import { Router } from 'express';
 import pino from 'pino';
-import { IgAccountModel, AutomationModel } from '@replybridge/db';
+import { IgAccountModel } from '../models/instagram-account.js';
+import { User } from '../models/user.js';
+import { AutomationModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../middleware/errors.js';
+import { backfillMediaSync } from '../services/backfill.service.js';
 import { env } from '../config/env.js';
 import { signOAuthState, verifyOAuthState } from '../services/jwt.js';
 import { encrypt, decrypt } from '../services/crypto.js';
@@ -99,12 +102,10 @@ router.get('/callback', async (req, res, next) => {
       logger.warn({ e, igId }, 'Webhook subscription failed — will retry');
     }
 
-    // Trigger backfill (import last 100 media)
-    try {
-      await enqueueBackfill(String(account._id), igId);
-    } catch (e) {
-      logger.error({ e, igId }, 'Failed to enqueue backfill job (check Redis connection)');
-    }
+    // Trigger backfill asynchronously (don't await so redirect happens instantly)
+    backfillMediaSync(String(account._id), igId).catch((e) => {
+      logger.error({ e, igId }, 'Failed inline backfill job');
+    });
 
     res.redirect(`${env.BASE_URL}/reels?connected=1`);
   } catch (e) { next(e); }

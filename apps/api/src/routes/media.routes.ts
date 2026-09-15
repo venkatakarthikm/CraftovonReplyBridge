@@ -4,8 +4,7 @@ import pino from 'pino';
 import { Types } from 'mongoose';
 import { MediaModel, CommentEventModel, IgAccountModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
-import { AppError } from '../middleware/errors.js';
-import { enqueueBackfill } from '../queues/producers.js';
+import { backfillMediaSync } from '../services/backfill.service.js';
 
 const router = Router();
 const logger = pino({ name: 'media' });
@@ -72,12 +71,12 @@ router.post('/sync', async (req, res, next) => {
       throw new AppError(403, 'forbidden', 'Not your IG account');
     }
     try {
-      await enqueueBackfill(String(account._id), account.igId);
+      await backfillMediaSync(String(account._id), account.igId);
     } catch (e) {
-      logger.error({ e }, 'Failed to enqueue backfill job (check Redis connection)');
-      throw new AppError(500, 'queue_error', 'Failed to start sync. Is Redis running?');
+      logger.error({ e }, 'Failed to sync media from Instagram');
+      throw new AppError(500, 'sync_error', 'Failed to pull reels from Instagram.');
     }
-    res.json({ data: { message: 'Backfill enqueued' } });
+    res.json({ data: { message: 'Media synced successfully!' } });
   } catch (e) { next(e); }
 });
 
