@@ -46,7 +46,7 @@ export default function Analytics() {
           </div>
           {/* CSV export */}
           <a
-            href="/api/v1/analytics/export.csv"
+            href={`${(import.meta as any).env.VITE_API_URL || '/api/v1'}/analytics/export.csv`}
             className="btn-secondary"
             download
           >
