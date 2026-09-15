@@ -1,0 +1,28 @@
+{
+  "name": "@replybridge/db",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./models/*": "./dist/models/*.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist",
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "mongoose": "^8.6.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4",
+    "@types/node": "^20.14.0"
+  }
+}

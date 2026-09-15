@@ -1,17 +1,35 @@
 {
-  "name": "ig-comment-automation",
+  "name": "craftovon-replybridge",
   "version": "1.0.0",
-  "description": "Instagram comment-to-DM automation using Meta's official Instagram Messaging API",
-  "main": "src/server.js",
-  "type": "commonjs",
+  "private": true,
+  "packageManager": "npm@22.13.0",
+  "description": "Craftovon ReplyBridge — Instagram comment-to-DM automation SaaS",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "seed": "tsx packages/db/src/seed.ts",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.17.0",
+    "turbo": "^2.1.2",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "axios": "^1.7.7",
-    "dotenv": "^16.4.5",
-    "body-parser": "^1.20.2"
+    "cookie-parser": "^1.4.7"
   }
 }
