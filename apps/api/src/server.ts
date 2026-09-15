@@ -29,8 +29,9 @@ const app = express();
 
 // ── Security headers ──────────────────────────────────────────────────────
 app.use(helmet());
+const frontendUrl = env.BASE_URL.replace(/\/$/, '');
 app.use(cors({
-  origin: env.BASE_URL,
+  origin: [frontendUrl, `${frontendUrl}/`],
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
 }));
