@@ -1,5 +1,6 @@
 // apps/api/src/routes/media.routes.ts
 import { Router } from 'express';
+import pino from 'pino';
 import { Types } from 'mongoose';
 import { MediaModel, CommentEventModel, IgAccountModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
@@ -7,6 +8,7 @@ import { AppError } from '../middleware/errors.js';
 import { enqueueBackfill } from '../queues/producers.js';
 
 const router = Router();
+const logger = pino({ name: 'media' });
 router.use(requireAuth);
 
 /** GET /media */
