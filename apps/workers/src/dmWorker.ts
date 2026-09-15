@@ -18,7 +18,14 @@ import { getGraphErrorCode } from '@replybridge/graph';
 import { decrypt } from './services/crypto.js';
 
 const logger = pino({ name: 'dm-worker' });
-const REDIS_OPTS = { connection: { url: process.env['REDIS_URL'] ?? 'redis://localhost:6379' } };
+const redisUrl = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+const isSecure = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
+const REDIS_OPTS = {
+  connection: {
+    url: redisUrl,
+    ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
+  },
+};
 
 // META-VERIFIED: Throttle error code = 80002
 const THROTTLE_ERROR_CODE = 80002;

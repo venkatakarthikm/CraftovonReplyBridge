@@ -5,7 +5,13 @@ import { Queue } from 'bullmq';
 import { createHash } from 'crypto';
 import { env } from '../config/env.js';
 
-const REDIS_OPTS = { connection: { url: env.REDIS_URL } };
+const isSecure = env.REDIS_URL.startsWith('rediss://') || env.REDIS_URL.includes('upstash.io');
+const REDIS_OPTS = {
+  connection: {
+    url: env.REDIS_URL,
+    ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
+  },
+};
 
 // Queue instances (lazily created)
 let _wfEventsQueue: Queue | null = null;

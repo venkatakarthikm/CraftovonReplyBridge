@@ -14,7 +14,14 @@ import { GraphCommentsClient } from '@replybridge/graph/comments';
 import { decrypt } from './services/crypto.js';
 
 const logger = pino({ name: 'backfill-worker' });
-const REDIS_OPTS = { connection: { url: process.env['REDIS_URL'] ?? 'redis://localhost:6379' } };
+const redisUrl = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+const isSecure = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
+const REDIS_OPTS = {
+  connection: {
+    url: redisUrl,
+    ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
+  },
+};
 const SEVEN_DAYS_MS = 7 * 24 * 3600 * 1000;
 const MAX_MEDIA_IMPORT = 100;
 

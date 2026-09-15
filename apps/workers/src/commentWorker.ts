@@ -18,7 +18,14 @@ import {
 import { decrypt } from './services/crypto.js';
 
 const logger = pino({ name: 'comment-worker' });
-const REDIS_OPTS = { connection: { url: process.env['REDIS_URL'] ?? 'redis://localhost:6379' } };
+const redisUrl = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
+const isSecure = redisUrl.startsWith('rediss://') || redisUrl.includes('upstash.io');
+const REDIS_OPTS = {
+  connection: {
+    url: redisUrl,
+    ...(isSecure ? { tls: { rejectUnauthorized: false } } : {}),
+  },
+};
 
 // The 7-day private-reply window in milliseconds
 // META-VERIFIED: Private replies only allowed within 7 days of comment
