@@ -76,7 +76,7 @@ export default function Inbox() {
                       <Clock className="w-3 h-3" />
                       {formatRelative(String(conv['lastInboundAt'] ?? ''))}
                     </span>
-                    {conv['sourceCommentId'] && (
+                    {!!conv['sourceCommentId'] && (
                       <span className="flex items-center gap-1">
                         <Send className="w-3 h-3" />
                         From comment

@@ -69,7 +69,7 @@ export default function Reels() {
             className="input pl-9"
             placeholder="Search reels…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.currentTarget.value)}
           />
         </div>
         <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-white/5 border border-white/10 w-full sm:w-auto">

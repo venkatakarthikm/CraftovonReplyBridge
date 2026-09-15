@@ -61,19 +61,19 @@ export default function Register() {
             <div>
               <label className="block text-xs font-medium text-white/60 mb-1.5">Full name</label>
               <input id="register-name" type="text" className="input" placeholder="Alex Smith"
-                value={name} onChange={(e) => setName(e.target.value)} required />
+                value={name} onChange={(e) => setName(e.currentTarget.value)} required />
             </div>
             <div>
               <label className="block text-xs font-medium text-white/60 mb-1.5">Email</label>
               <input id="register-email" type="email" className="input" placeholder="you@example.com"
-                value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+                value={email} onChange={(e) => setEmail(e.currentTarget.value)} required autoComplete="email" />
             </div>
             <div>
               <label className="block text-xs font-medium text-white/60 mb-1.5">
                 Password <span className="text-white/30">(min 8 characters)</span>
               </label>
               <input id="register-password" type="password" className="input" placeholder="••••••••"
-                value={password} onChange={(e) => setPassword(e.target.value)}
+                value={password} onChange={(e) => setPassword(e.currentTarget.value)}
                 required minLength={8} autoComplete="new-password" />
             </div>
 

@@ -76,7 +76,7 @@ export default function AutomationEditor() {
         {/* Automation name */}
         <div className="card p-5">
           <label className="block text-xs font-medium text-white/60 mb-2">Automation name</label>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="input" value={name} onChange={(e) => setName(e.currentTarget.value)} />
         </div>
 
         {/* ── Trigger ── */}
@@ -112,7 +112,7 @@ export default function AutomationEditor() {
                 className="input"
                 placeholder="link, price, dm, info"
                 value={keywords}
-                onChange={(e) => setKeywords(e.target.value)}
+                onChange={(e) => setKeywords(e.currentTarget.value)}
               />
             </div>
           )}
@@ -128,7 +128,7 @@ export default function AutomationEditor() {
             className="input resize-none"
             rows={3}
             value={dmText}
-            onChange={(e) => setDmText(e.target.value)}
+            onChange={(e) => setDmText(e.currentTarget.value)}
             placeholder="Your DM text… Use {{name}} for personalization."
           />
           <p className="text-xs text-white/30 mt-1.5">
@@ -147,7 +147,7 @@ export default function AutomationEditor() {
             type="url"
             placeholder="https://your-link.com"
             value={link}
-            onChange={(e) => setLink(e.target.value)}
+            onChange={(e) => setLink(e.currentTarget.value)}
           />
           <p className="text-xs text-white/30 mt-1.5">
             Each reel can have a different link. Change it anytime — takes effect immediately.
@@ -172,7 +172,7 @@ export default function AutomationEditor() {
             <input
               className="input"
               value={commentReplyText}
-              onChange={(e) => setCommentReplyText(e.target.value)}
+              onChange={(e) => setCommentReplyText(e.currentTarget.value)}
             />
           )}
           <p className="text-xs text-white/30 mt-1.5">

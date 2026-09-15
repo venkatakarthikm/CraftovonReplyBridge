@@ -59,7 +59,7 @@ export default function Help() {
         </div>
       </div>
 
-      {categories.map((category) => {
+      {categories.map((category: any) => {
         const catArticles = articles?.filter(
           (a: Record<string, unknown>) => a['category'] === category
         ) ?? [];

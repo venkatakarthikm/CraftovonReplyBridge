@@ -64,7 +64,7 @@ export default function Settings() {
                 {statusBadge(String(account['status'] ?? 'active'))}
                 <span className="badge badge-gray">{String(account['accountType'] ?? '')}</span>
               </div>
-              {account['tokenExpiresAt'] && (
+              {!!account['tokenExpiresAt'] && (
                 <p className="text-xs text-white/30 mt-0.5">
                   Token expires {new Date(String(account['tokenExpiresAt'])).toLocaleDateString()}
                 </p>
