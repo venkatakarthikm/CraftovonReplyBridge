@@ -4,6 +4,7 @@ import pino from 'pino';
 import { Types } from 'mongoose';
 import { MediaModel, CommentEventModel, IgAccountModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
+import { AppError } from '../middleware/errors.js';
 import { backfillMediaSync } from '../services/backfill.service.js';
 
 const router = Router();

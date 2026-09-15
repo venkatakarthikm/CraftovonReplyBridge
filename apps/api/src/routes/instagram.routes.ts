@@ -4,9 +4,7 @@
 //   instagram_business_manage_messages (deprecated legacy names Jan 27 2025)
 import { Router } from 'express';
 import pino from 'pino';
-import { IgAccountModel } from '../models/instagram-account.js';
-import { User } from '../models/user.js';
-import { AutomationModel } from '@replybridge/db';
+import { IgAccountModel, AutomationModel } from '@replybridge/db';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError } from '../middleware/errors.js';
 import { backfillMediaSync } from '../services/backfill.service.js';
