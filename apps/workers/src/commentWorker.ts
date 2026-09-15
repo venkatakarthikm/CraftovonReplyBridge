@@ -108,6 +108,13 @@ async function processCommentEvent(job: Job): Promise<void> {
       matched: false,
       skippedReason: null,
     });
+
+    await import('@replybridge/db').then(({ MediaModel }) => {
+      return MediaModel.updateOne(
+        { igId, mediaId },
+        { $inc: { commentCount: 1 } }
+      );
+    });
   } catch (e: unknown) {
     // E11000 = duplicate comment — already processed
     if ((e as { code?: number }).code === 11000) {

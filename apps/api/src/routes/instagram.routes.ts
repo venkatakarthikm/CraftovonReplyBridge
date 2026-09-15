@@ -107,16 +107,19 @@ router.get('/callback', async (req, res, next) => {
     );
 
     // Trigger backfill asynchronously (don't await so redirect happens instantly)
-    backfillMediaSync(String(account._id), igId)
-      .then(() => {
-        UserModel.updateOne(
-          { _id: userId },
-          { $addToSet: { 'onboarding.checklist': 'reels_imported' } }
-        ).catch(() => {});
-      })
-      .catch((e) => {
-        logger.error({ e, igId }, 'Failed inline backfill job');
-      });
+    import('../queues/producers.js').then(({ enqueueBackfill }) => {
+      backfillMediaSync(String(account._id), igId)
+        .then(() => {
+          UserModel.updateOne(
+            { _id: userId },
+            { $addToSet: { 'onboarding.checklist': 'reels_imported' } }
+          ).catch(() => {});
+          return enqueueBackfill(String(account._id), igId);
+        })
+        .catch((e) => {
+          logger.error({ e, igId }, 'Failed inline backfill job');
+        });
+    });
 
     const frontendUrl = env.BASE_URL.replace(/\/$/, '');
     res.redirect(`${frontendUrl}/reels?connected=1`);

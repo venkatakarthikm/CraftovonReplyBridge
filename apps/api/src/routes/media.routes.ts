@@ -92,7 +92,21 @@ router.post('/sync', async (req, res, next) => {
         { _id: req.user!.sub },
         { $addToSet: { 'onboarding.checklist': 'reels_imported' } }
       );
-      res.json({ data: { message: 'Media synced successfully!', ...syncResult } });
+
+      const automations = await AutomationModel.find(
+        { igAccountId: account._id, scope: 'media', enabled: true, 'backfill.enabled': true },
+        '_id igId mediaId'
+      );
+      
+      import('../queues/producers.js').then(async ({ enqueueCommentBackfill }) => {
+        for (const a of automations) {
+          if (a.mediaId) {
+            await enqueueCommentBackfill(String(a._id), a.igId, a.mediaId, String(account._id));
+          }
+        }
+      });
+
+      res.json({ data: { message: 'Media synced successfully!', ...syncResult, automationsEnqueued: automations.length } });
     } catch (e) {
       logger.error({ e }, 'Failed to sync media from Instagram');
       throw new AppError(500, 'sync_error', 'Failed to pull reels from Instagram.');

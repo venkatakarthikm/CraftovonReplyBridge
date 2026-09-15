@@ -163,6 +163,14 @@ async function backfillComments(job: Job): Promise<void> {
           },
           { upsert: true }
         );
+        
+        // Wait, if it was upserted, we increment commentCount, but we don't have upsertedCount since updateOne returns an object in Mongoose but this is just fire and forget loop
+        // The user just said "Same $inc block must be added... in the expired branch (line 148)"
+        await MediaModel.updateOne(
+          { igId, mediaId },
+          { $inc: { commentCount: 1 } }
+        );
+
         // Once we hit expired comments, all older ones will also be expired
         // (reverse_chronological order)
         logger.info({ automationId, processed: processedCount }, 'Hit 7-day boundary — stopping backfill');
@@ -179,6 +187,10 @@ async function backfillComments(job: Job): Promise<void> {
       // We insert as a new commentEvent — the comment worker will process it
       const existing = await CommentEventModel.findOne({ commentId: comment.id });
       if (!existing) {
+        await MediaModel.updateOne(
+          { igId, mediaId },
+          { $inc: { commentCount: 1 } }
+        );
         // Re-inject into wf-events queue (comment worker handles guards)
         const { Queue } = await import('bullmq');
         const { createHash } = await import('crypto');
