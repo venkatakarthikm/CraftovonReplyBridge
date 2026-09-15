@@ -95,13 +95,13 @@ router.post('/sync', async (req, res, next) => {
 
       const automations = await AutomationModel.find(
         { igAccountId: account._id, scope: 'media', enabled: true, 'backfill.enabled': true },
-        '_id igId mediaId'
+        '_id mediaId'
       );
       
       import('../queues/producers.js').then(async ({ enqueueCommentBackfill }) => {
         for (const a of automations) {
           if (a.mediaId) {
-            await enqueueCommentBackfill(String(a._id), a.igId, a.mediaId, String(account._id));
+            await enqueueCommentBackfill(String(a._id), account.igId, a.mediaId, String(account._id));
           }
         }
       });
