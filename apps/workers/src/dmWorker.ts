@@ -110,7 +110,8 @@ async function handlePrivateReply(job: Job): Promise<void> {
   try {
     await MessageLogModel.updateOne({ _id: logId }, { $inc: { attempts: 1 } });
 
-    const { message_id, usedFallback } = await msgClient.sendPrivateReply(commentId, text);
+    const buttonPayload = `GET_LINK:${automationId}`;
+    const { message_id, usedFallback } = await msgClient.sendPrivateReply(commentId, text, 'Get Link', buttonPayload);
 
     await MessageLogModel.updateOne(
       { _id: logId },
@@ -206,7 +207,8 @@ async function handleFollowUp(job: Job): Promise<void> {
   const accessToken = decrypt(account.tokenCipher);
 
   const msgClient = new RealGraphMessagingClient(accessToken, igId);
-  const { message_id } = await msgClient.sendGetLinkButton(participantId, text, buttonTitle, buttonPayload);
+  const buttonPayloadOverride = `GET_LINK:${automationId}`;
+  const { message_id } = await msgClient.sendGetLinkButton(participantId, text, buttonTitle, buttonPayloadOverride);
 
   await MessageLogModel.create({
     igId,

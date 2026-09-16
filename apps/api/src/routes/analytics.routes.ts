@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { MessageLogModel, AutomationModel, UsageCounterModel, IgAccountModel } from '@replybridge/db';
+import { Types } from 'mongoose';
 
 const router = Router();
 router.use(requireAuth);
@@ -11,7 +12,7 @@ router.use(requireAuth);
 router.get('/overview', async (req, res, next) => {
   try {
     const { from, to } = req.query as { from?: string; to?: string };
-    const userId = req.user!.sub;
+    const userId = new Types.ObjectId(req.user!.sub);
 
     const fromDate = from ? new Date(from) : new Date(Date.now() - 30 * 86400000);
     const toDate = to ? new Date(to) : new Date();

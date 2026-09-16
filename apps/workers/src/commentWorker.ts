@@ -286,7 +286,7 @@ async function processInboundMessage(job: Job): Promise<void> {
         automationId: String(automation._id),
         text: resolveVariables(automation.followUp.text, { link: automation.link.url }),
         buttonTitle: automation.followUp.button.title,
-        buttonPayload: automation.followUp.button.payload,
+        buttonPayload: `GET_LINK:${automation._id}`,
       },
       {
         delay: automation.followUp.delaySeconds * 1000,
@@ -314,12 +314,11 @@ async function processPostback(job: Job): Promise<void> {
   const participantId = data.sender.id;
   const payload = data.postback.payload;
 
-  if (payload !== 'GET_LINK') return;
+  if (!payload.startsWith('GET_LINK:')) return;
+  const automationId = payload.split(':')[1];
+  if (!automationId) return;
 
-  const state = await ConversationStateModel.findOne({ igId, participantId });
-  if (!state || state.stage !== 'sent_get_link') return;
-
-  const automation = await AutomationModel.findById(state.pendingAutomationId);
+  const automation = await AutomationModel.findById(automationId);
   if (!automation) return;
 
   // Send final link button
@@ -337,7 +336,7 @@ async function processPostback(job: Job): Promise<void> {
 
   // Update state to completed
   await ConversationStateModel.updateOne(
-    { _id: state._id },
+    { igId, participantId },
     { stage: 'completed', lastOutboundAt: new Date() }
   );
 
