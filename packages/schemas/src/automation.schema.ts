@@ -26,6 +26,7 @@ export const CreateAutomationSchema = z.object({
   scope: AutomationScopeSchema,
   mediaId: z.string().optional(),
   name: z.string().min(1).max(100),
+  enabled: z.boolean().default(true),
   trigger: z.object({
     mode: TriggerModeSchema,
     keywords: z.array(z.string().min(1).max(50)).default([]),

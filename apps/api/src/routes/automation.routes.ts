@@ -14,11 +14,12 @@ router.use(requireAuth);
 /** GET /automations */
 router.get('/', async (req, res, next) => {
   try {
-    const { igAccountId, scope, enabled, cursor, limit = 25 } = req.query as Record<string, string>;
+    const { igAccountId, scope, enabled, mediaId, cursor, limit = 25 } = req.query as Record<string, string>;
     const filter: Record<string, unknown> = { userId: req.user!.sub };
     if (igAccountId) filter['igAccountId'] = igAccountId;
     if (scope) filter['scope'] = scope;
     if (enabled !== undefined) filter['enabled'] = enabled === 'true';
+    if (mediaId) filter['mediaId'] = mediaId;
 
     const automations = await AutomationModel.find(filter)
       .sort({ createdAt: -1 })
@@ -44,9 +45,12 @@ router.post('/', async (req, res, next) => {
       ...body,
       userId: req.user!.sub,
       igAccountId: body.igAccountId,
-      'link.history': [
-        { url: body.link.url, changedAt: new Date(), changedBy: new Types.ObjectId(req.user!.sub) },
-      ],
+      link: {
+        ...body.link,
+        history: [
+          { url: body.link.url, changedAt: new Date(), changedBy: new Types.ObjectId(req.user!.sub) },
+        ],
+      },
       version: 0,
     });
 
