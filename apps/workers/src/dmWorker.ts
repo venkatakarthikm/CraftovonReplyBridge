@@ -138,7 +138,11 @@ async function handlePrivateReply(job: Job): Promise<void> {
         igId,
         participantId: fromUserId,
         sourceCommentId: commentId,
-        stage: 'awaiting_user_reply',
+        // If the button was embedded directly in the private reply, the
+        // conversation is already ready for a postback tap — skip straight
+        // to 'sent_get_link'. Only fall back to 'awaiting_user_reply' if we
+        // had to use the plain-text fallback (no button yet).
+        stage: usedFallback ? 'awaiting_user_reply' : 'sent_get_link',
         pendingAutomationId: automationId,
         lastInboundAt: new Date(),
         lastOutboundAt: new Date(),
