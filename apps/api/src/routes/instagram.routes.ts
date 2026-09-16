@@ -91,13 +91,15 @@ router.get('/callback', async (req, res, next) => {
 
     logger.info({ igId, userId }, 'IG account connected');
 
-    // Subscribe webhook (best-effort, will retry if fails)
+    // Subscribe webhook
     try {
       const mediaClient = new GraphMediaClient(longLivedToken);
-      await mediaClient.subscribeWebhook(igId, env.META_APP_ID, env.META_APP_SECRET);
+      const result = await mediaClient.subscribeWebhook(igId);
+      logger.info({ igId, result }, 'Webhook subscription succeeded');
       await IgAccountModel.updateOne({ igId }, { webhookSubscribed: true });
-    } catch (e) {
-      logger.warn({ e, igId }, 'Webhook subscription failed — will retry');
+    } catch (e: any) {
+      logger.error({ error: e.response?.data || e.message, igId }, 'Webhook subscription FAILED');
+      // don't swallow — this is critical, not optional
     }
 
     // Add to checklist

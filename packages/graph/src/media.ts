@@ -70,10 +70,16 @@ export class GraphMediaClient {
    * Subscribe to webhook fields for an IG account.
    * META-VERIFIED: Fields for comment automation: comments, messages, messaging_postbacks, message_echoes
    */
-  async subscribeWebhook(igId: string, appId: string, appSecret: string): Promise<{ success: boolean }> {
-    const res = await this.client.post<{ success: boolean }>(`/${igId}/subscribed_apps`, {
-      subscribed_fields: ['comments', 'messages', 'messaging_postbacks', 'message_echoes'],
-    });
+  async subscribeWebhook(igId: string): Promise<{ success: boolean }> {
+    const res = await this.client.post<{ success: boolean }>(
+      `/${igId}/subscribed_apps`,
+      null, // no JSON body
+      {
+        params: {
+          subscribed_fields: ['comments', 'messages', 'messaging_postbacks', 'message_echoes'].join(','),
+        },
+      }
+    );
     return res.data;
   }
 }
