@@ -126,7 +126,7 @@ export default function Dashboard() {
                     "bg-theme-bg border-theme-border/60 cursor-pointer hover:bg-theme-surface"
                   )}
                   onClick={() => {
-                    if (!done && step.key === 'connect_ig') navigate('/settings');
+                    if (!done && step.key === 'connect_ig') navigate('/settings?tab=accounts');
                     if (!done && step.key === 'first_automation') navigate('/reels');
                   }}
                 >
@@ -243,7 +243,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 px-4 border border-dashed border-theme-border rounded-xl">
                 <p className="text-sm text-theme-text-secondary mb-3">No accounts connected</p>
-                <button onClick={() => navigate('/settings')} className="btn-secondary text-xs py-1.5 px-3">Connect Account</button>
+                <button onClick={() => navigate('/settings?tab=accounts')} className="btn-secondary text-xs py-1.5 px-3">Connect Account</button>
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Instagram, Plug, RefreshCw, Trash2, User, Mail, Key, Save, Moon, Sun, Monitor, Settings as SettingsIcon, CreditCard, AlertTriangle, ChevronLeft } from 'lucide-react';
+import { Instagram, Plug, RefreshCw, Trash2, User, Mail, Key, Save, Moon, Sun, Monitor, Settings as SettingsIcon, CreditCard, AlertTriangle, ChevronLeft, LogOut } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { useAuthStore } from '../../stores/auth.store.js';
 import { useThemeStore } from '../../stores/theme.store.js';
@@ -17,7 +17,7 @@ const SETTINGS_TABS = [
 ];
 
 export default function Settings() {
-  const { user, setAuth } = useAuthStore();
+  const { user, setAuth, clearAuth } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -112,7 +112,7 @@ export default function Settings() {
             {/* Theme Settings */}
             <div className="card p-6">
               <h2 className="text-title mb-6">Appearance</h2>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 {[
                   { id: 'light', icon: Sun, label: 'Light' },
                   { id: 'dark', icon: Moon, label: 'Dark' },
@@ -122,14 +122,14 @@ export default function Settings() {
                     key={t.id}
                     onClick={() => setTheme(t.id as any)}
                     className={clsx(
-                      'flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all',
+                      'flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-xl border-2 transition-all',
                       theme === t.id
                         ? 'border-theme-text-primary bg-theme-border/20'
                         : 'border-theme-border hover:border-theme-border/80 bg-theme-bg'
                     )}
                   >
-                    <t.icon className={clsx('w-6 h-6', theme === t.id ? 'text-theme-text-primary' : 'text-theme-text-secondary')} />
-                    <span className="text-sm font-semibold text-theme-text-primary">{t.label}</span>
+                    <t.icon className={clsx('w-5 h-5 sm:w-6 sm:h-6', theme === t.id ? 'text-theme-text-primary' : 'text-theme-text-secondary')} />
+                    <span className="text-[11px] sm:text-sm font-semibold text-theme-text-primary tracking-tight">{t.label}</span>
                   </button>
                 ))}
               </div>
@@ -178,14 +178,26 @@ export default function Settings() {
                   </div>
                 </div>
                 
-                <div className="pt-4 border-t border-theme-border">
+                <div className="pt-4 border-t border-theme-border flex flex-col sm:flex-row gap-3">
                   <button 
                     onClick={handleUpdateProfile}
                     disabled={updateProfileMutation.isPending || (!name && !email && !password)}
-                    className="btn-primary"
+                    className="btn-primary w-full sm:w-auto justify-center"
                   >
                     <Save className="w-4 h-4" />
                     {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </button>
+
+                  {/* Mobile Logout */}
+                  <button
+                    onClick={() => {
+                      clearAuth();
+                      navigate('/login');
+                    }}
+                    className="md:hidden w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-medium text-sm transition-colors text-red-500 bg-red-500/10 hover:bg-red-500/20"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
                   </button>
                 </div>
               </div>

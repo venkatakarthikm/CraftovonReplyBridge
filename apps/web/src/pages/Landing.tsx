@@ -203,7 +203,7 @@ export default function Landing() {
           <span className="font-display font-bold text-xl text-theme-text-primary tracking-tight">ReplyBridge</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link to="/login" className="text-sm font-medium text-theme-text-secondary hover:text-theme-text-primary transition-colors">Sign in</Link>
+          <Link to="/login" className="hidden sm:inline-flex text-sm font-medium text-theme-text-secondary hover:text-theme-text-primary transition-colors">Sign in</Link>
           <Link to="/register" className="btn-primary py-2 px-4 shadow-[0_0_20px_rgba(225,48,108,0.3)]">Get started free</Link>
         </div>
       </nav>
