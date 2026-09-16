@@ -138,12 +138,12 @@ export async function exchangeCodeForTokens(
 
   // Step 3: get IG profile
   const profileRes = await axios.get<{
-    id: string;
+    user_id: string;
     username: string;
     account_type: string;
   }>(`${GRAPH_BASE}/me`, {
     params: {
-      fields: 'id,username,account_type',
+      fields: 'user_id,username,account_type',
       access_token: longLivedRes.data.access_token,
     },
   });
@@ -151,7 +151,7 @@ export async function exchangeCodeForTokens(
   return {
     longLivedToken: longLivedRes.data.access_token,
     expiresIn: longLivedRes.data.expires_in,
-    igId: profileRes.data.id,
+    igId: profileRes.data.user_id,
     username: profileRes.data.username,
     accountType: profileRes.data.account_type,
   };
