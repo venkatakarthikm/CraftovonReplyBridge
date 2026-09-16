@@ -22,6 +22,8 @@ import Analytics from './pages/app/Analytics.js';
 import Settings from './pages/app/Settings.js';
 import Help from './pages/app/Help.js';
 
+import { ThemeProvider } from './components/ThemeProvider.js';
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
@@ -30,8 +32,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public */}
+    <ThemeProvider>
+      <Routes>
+        {/* Public */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -60,6 +63,7 @@ export default function App() {
       
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </ThemeProvider>
   );
 }

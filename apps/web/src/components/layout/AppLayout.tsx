@@ -1,37 +1,52 @@
-// apps/web/src/components/layout/AppLayout.tsx
-// Main application shell: sidebar + top bar + content area
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, Film, MessageSquare, BarChart3,
-  Inbox, Settings, HelpCircle, Zap, LogOut, Menu, X
+  Inbox, Settings, HelpCircle, LogOut, ChevronLeft, ChevronRight,
+  Settings as SettingsIcon, CreditCard, AlertTriangle, Instagram
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/auth.store.js';
 import { clsx } from 'clsx';
 import ProductTour from '../tour/ProductTour.js';
 import { useState, useEffect } from 'react';
 
-const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/reels', icon: Film, label: 'Reels', tourId: 'tour-reels-grid' },
-  { to: '/templates', icon: MessageSquare, label: 'Templates', tourId: 'tour-templates' },
-  { to: '/inbox', icon: Inbox, label: 'Inbox', tourId: 'tour-inbox' },
-  { to: '/analytics', icon: BarChart3, label: 'Analytics', tourId: 'tour-analytics' },
+const NAV_GROUPS = [
+  {
+    label: 'Workspace',
+    items: [
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', tourId: undefined },
+      { to: '/reels', icon: Film, label: 'Reels', tourId: 'tour-reels-grid' },
+      { to: '/inbox', icon: Inbox, label: 'Inbox', tourId: 'tour-inbox' },
+    ]
+  },
+  {
+    label: 'Automations',
+    items: [
+      { to: '/templates', icon: MessageSquare, label: 'Templates', tourId: 'tour-templates' },
+      { to: '/analytics', icon: BarChart3, label: 'Analytics', tourId: 'tour-analytics' },
+    ]
+  },
+  {
+    label: 'Account',
+    items: [
+      { to: '/settings', icon: Settings, label: 'Settings', tourId: undefined },
+      { to: '/help', icon: HelpCircle, label: 'Help', tourId: undefined },
+    ]
+  }
+];
+
+const MOBILE_NAV = [
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Home' },
+  { to: '/reels', icon: Film, label: 'Reels' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/settings', icon: Settings, label: 'Settings' },
-  { to: '/help', icon: HelpCircle, label: 'Help' },
 ];
 
 export default function AppLayout() {
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
-
-  // Keep user profile up to date (e.g., after OAuth redirects)
   useEffect(() => {
     if (user?.id) {
       import('../../api/client.js').then(({ api }) => {
@@ -56,117 +71,284 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface">
-      {/* ── Mobile Top Header ── */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/8 bg-surface-100/80 backdrop-blur-md absolute top-0 w-full z-20">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
-            <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
-          </div>
-          <span className="font-bold text-sm text-white">ReplyBridge</span>
-        </div>
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* ── Mobile Sidebar Overlay ── */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* ── Sidebar ── */}
+    <div className="flex h-[100dvh] overflow-hidden bg-theme-bg">
+      {/* ── Desktop Sidebar ── */}
       <aside 
         className={clsx(
-          "fixed md:static inset-y-0 right-0 md:left-0 z-40 w-72 md:w-64 flex flex-col border-l md:border-l-0 md:border-r border-white/8 bg-surface-100 backdrop-blur-xl transition-transform duration-300 md:transform-none flex-shrink-0",
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
+          "hidden md:flex flex-col border-r border-theme-border bg-theme-surface transition-all duration-300 z-40 relative",
+          isSidebarCollapsed ? "w-20" : "w-64"
         )}
       >
-        {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
+        <button 
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="absolute -right-3 top-8 w-6 h-6 rounded-full bg-theme-surface border border-theme-border flex items-center justify-center text-theme-text-secondary hover:text-theme-text-primary transition-colors z-50 shadow-sm"
+        >
+          {isSidebarCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        </button>
+
+        {/* Brand/Logo */}
+        <div className="px-6 py-6 border-b border-theme-border/50">
+          <Link to="/" className={clsx("flex items-center gap-3 group", isSidebarCollapsed ? "justify-center px-0" : "px-2")}>
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-theme-border flex-shrink-0">
+               <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
             </div>
-            <div>
-              <span className="font-bold text-sm text-white">ReplyBridge</span>
-              <p className="text-[10px] text-white/40 leading-none">by Craftovon</p>
-            </div>
-          </div>
-          <button 
-            className="md:hidden p-1 rounded-lg text-white/50 hover:bg-white/10 hover:text-white"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            <X className="w-5 h-5" />
-          </button>
+            {!isSidebarCollapsed && (
+              <div className="overflow-hidden whitespace-nowrap animate-fade-in">
+                <span className="font-display font-bold text-xl text-theme-text-primary tracking-tight">ReplyBridge</span>
+                <p className="text-[10px] text-theme-text-secondary font-medium uppercase tracking-wider">Craftovon</p>
+              </div>
+            )}
+          </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 md:px-3 py-6 md:py-4 overflow-y-auto flex flex-col gap-2 md:gap-1">
-          {NAV_ITEMS.map(({ to, icon: Icon, label, tourId }) => (
-            <NavLink
-              key={to}
-              to={to}
-              id={tourId}
-              className={({ isActive }) =>
-                clsx(
-                  'nav-link flex items-center gap-4 md:gap-3 px-5 py-4 md:px-3 md:py-2 rounded-2xl md:rounded-xl text-lg md:text-sm font-medium transition-colors',
-                  isActive ? 'active bg-brand-500/10 text-brand-400' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
-                )
-              }
-            >
-              <Icon className="w-6 h-6 md:w-4 md:h-4 flex-shrink-0" />
-              {label}
-            </NavLink>
+        <nav className="flex-1 overflow-y-auto py-6 space-y-8 no-scrollbar">
+          {NAV_GROUPS.map((group, idx) => (
+            <div key={idx} className="px-4">
+              {!isSidebarCollapsed && (
+                <h3 className="px-3 mb-2 text-label uppercase tracking-widest font-semibold text-theme-text-secondary/70">
+                  {group.label}
+                </h3>
+              )}
+              <div className="space-y-1">
+                {group.items.map(({ to, icon: Icon, label, tourId }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    id={tourId}
+                    title={isSidebarCollapsed ? label : undefined}
+                    className={({ isActive }) =>
+                      clsx(
+                        'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-150 relative border-l-2',
+                        isActive 
+                          ? 'border-theme-text-primary text-theme-text-primary bg-theme-border/20 ml-[-1px]' 
+                          : 'border-transparent text-theme-text-secondary hover:text-theme-text-primary'
+                      )
+                    }
+                  >
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    {!isSidebarCollapsed && <span>{label}</span>}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
         {/* User footer */}
-        <div className="p-4 md:p-3 border-t border-white/8">
-          <div className="flex items-center gap-3 px-3 py-3 md:py-2 bg-white/5 rounded-2xl md:rounded-xl">
-            <div className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-brand-600 flex items-center justify-center text-sm md:text-xs font-bold text-white flex-shrink-0">
+        <div className="p-4 border-t border-theme-border/50">
+          <div className={clsx("flex items-center gap-3 p-2 rounded-xl bg-theme-border/20 transition-all", isSidebarCollapsed ? "justify-center" : "")}>
+            <div className="w-8 h-8 rounded-full bg-theme-text-primary flex items-center justify-center text-sm font-bold text-theme-bg flex-shrink-0">
               {user?.name?.[0]?.toUpperCase() ?? '?'}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-base md:text-xs font-medium text-white truncate">{user?.name}</p>
-              <p className="text-sm md:text-[10px] text-white/40 truncate">{user?.plan?.toUpperCase()} plan</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-2.5 md:p-2 ml-1 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
-              title="Sign out"
-            >
-              <LogOut className="w-6 h-6 md:w-4 md:h-4" />
-            </button>
+            {!isSidebarCollapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-theme-text-primary truncate">{user?.name}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-theme-text-secondary truncate font-medium">{user?.plan} plan</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 text-theme-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </aside>
 
       {/* ── Main content ── */}
-      <main className="flex-1 overflow-y-auto pt-[60px] md:pt-0 relative flex flex-col">
+      <main className="flex-1 overflow-y-auto relative flex flex-col pb-[80px] md:pb-0">
+        {/* Mobile Header — only shows on Settings */}
+        <MobileTopBar />
+
         <div className="flex-1">
           <Outlet />
         </div>
-        {/* Footer */}
+        
+        {/* Conditional Footer (Desktop only) */}
         {['/dashboard', '/settings', '/help'].includes(location.pathname) && (
-          <footer className="border-t border-white/8 py-6 px-6 text-center text-xs text-white/30 mt-auto flex-shrink-0">
-            <p>© 2025 Craftovon ReplyBridge. All rights reserved.</p>
-            <div className="flex items-center justify-center gap-4 mt-2">
-              <a href="/privacy-policy" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="/terms" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Terms of Service</a>
-            </div>
-          </footer>
+          <AppFooter />
         )}
       </main>
 
-      {/* ── Guided product tour ── */}
+      {/* ── Mobile Floating Pill Nav ── */}
+      <MobileBottomNav />
+
       <ProductTour />
     </div>
+  );
+}
+
+/* ─── Mobile top bar: shows ONLY on Settings ─── */
+function MobileTopBar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  if (!location.pathname.startsWith('/settings')) {
+    return null;
+  }
+
+  return (
+    <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-theme-border bg-theme-surface/90 backdrop-blur-md sticky top-0 z-20 rounded-b-2xl shadow-sm">
+      <button
+        onClick={() => navigate(-1)}
+        className="p-2 -ml-2 rounded-lg text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/30 transition-colors"
+        aria-label="Back"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <span className="font-display font-semibold text-base text-theme-text-primary tracking-tight absolute left-1/2 -translate-x-1/2">
+        Settings
+      </span>
+      <div className="w-9 h-9" /> {/* Spacer for centering */}
+    </div>
+  );
+}
+
+/* ─── Mobile Bottom Nav: standard 4 tabs, OR Settings tabs ─── */
+function MobileBottomNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const isSettings = location.pathname.startsWith('/settings');
+  const activeSettingsTab = searchParams.get('tab') || 'general';
+
+  const SETTINGS_TABS = [
+    { id: 'general', label: 'General', shortLabel: 'General', icon: SettingsIcon },
+    { id: 'accounts', label: 'Instagram Accounts', shortLabel: 'Accounts', icon: Instagram },
+    { id: 'billing', label: 'Billing', shortLabel: 'Billing', icon: CreditCard },
+    { id: 'danger', label: 'Danger Zone', shortLabel: 'Danger', icon: AlertTriangle },
+  ];
+
+  return (
+    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 pb-[env(safe-area-inset-bottom)]">
+      <div className="relative w-full bg-theme-surface/95 backdrop-blur-xl border-t border-theme-border shadow-[0_-4px_30px_rgba(0,0,0,0.06)] rounded-t-2xl overflow-hidden h-[72px]">
+        
+        {/* Standard Nav */}
+        <nav 
+          className={clsx(
+            "absolute inset-0 flex items-center justify-between px-4 transition-all duration-300 ease-out",
+            isSettings ? "opacity-0 -translate-y-4 pointer-events-none" : "opacity-100 translate-y-0"
+          )}
+        >
+          {MOBILE_NAV.map(({ to, icon: Icon, label }) => {
+            const isActive = location.pathname.startsWith(to);
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={clsx(
+                  'flex flex-col items-center justify-center w-16 py-2 rounded-xl transition-all duration-200',
+                  isActive 
+                    ? 'text-theme-text-primary bg-theme-border/30' 
+                    : 'text-theme-text-secondary hover:text-theme-text-primary'
+                )}
+              >
+                <Icon className={clsx("w-5 h-5 mb-1 transition-transform", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 2} />
+                <span className={clsx("text-[10px] tracking-tight", isActive ? "font-bold" : "font-medium")}>{label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        {/* Settings Nav */}
+        <nav 
+          className={clsx(
+            "absolute inset-0 flex items-center justify-between px-2 transition-all duration-300 ease-out",
+            isSettings ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+          )}
+        >
+           <button 
+             onClick={() => navigate('/dashboard')} 
+             className="flex flex-col items-center justify-center w-14 py-2 rounded-xl text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/20 transition-colors"
+           >
+              <ChevronLeft className="w-5 h-5 mb-1" />
+              <span className="text-[10px] font-medium tracking-tight">Back</span>
+           </button>
+           <div className="w-[1px] h-8 bg-theme-border mx-1"></div>
+           {SETTINGS_TABS.map((tab) => {
+              const isActive = activeSettingsTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setSearchParams({ tab: tab.id })}
+                  className={clsx(
+                    'flex flex-col items-center justify-center flex-1 py-2 rounded-xl transition-all duration-200 mx-0.5',
+                    isActive 
+                      ? 'text-theme-text-primary bg-theme-border/30' 
+                      : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/10'
+                  )}
+                >
+                  <tab.icon className={clsx("w-5 h-5 mb-1 transition-transform", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className={clsx("text-[9px] tracking-tight truncate w-full text-center px-0.5", isActive ? "font-bold" : "font-medium")}>{tab.shortLabel}</span>
+                </button>
+              );
+           })}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Footer: structured 2-column layout ─── */
+function AppFooter() {
+  return (
+    <footer className="hidden md:block border-t border-theme-border bg-theme-surface/50 flex-shrink-0">
+      <div className="max-w-[1200px] mx-auto px-8 py-10 grid grid-cols-2 gap-8">
+        {/* Left: brand */}
+        <div>
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-7 h-7 rounded-lg overflow-hidden border border-theme-border flex-shrink-0">
+              <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
+            </div>
+            <span className="font-display font-semibold text-sm text-theme-text-primary tracking-tight">ReplyBridge</span>
+          </div>
+          <p className="text-xs text-theme-text-secondary leading-relaxed max-w-[220px]">
+            Automate your Instagram DMs. Turn comments into conversions, hands-free.
+          </p>
+          <p className="text-xs text-theme-text-secondary/60 mt-4">
+            © {new Date().getFullYear()} Craftovon. All rights reserved.
+          </p>
+        </div>
+
+        {/* Right: links */}
+        <div className="flex justify-end">
+          <div>
+            <p className="text-[10px] font-semibold text-theme-text-secondary/60 uppercase tracking-widest mb-3">Legal</p>
+            <div className="flex flex-col gap-2">
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-medium text-theme-text-secondary hover:text-theme-text-primary transition-colors"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-medium text-theme-text-secondary hover:text-theme-text-primary transition-colors"
+              >
+                Terms of Service
+              </a>
+              <a
+                href="/data-deletion"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-medium text-theme-text-secondary hover:text-theme-text-primary transition-colors"
+              >
+                Data Deletion
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }

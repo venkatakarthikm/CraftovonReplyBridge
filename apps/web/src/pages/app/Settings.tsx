@@ -1,15 +1,34 @@
-// apps/web/src/pages/app/Settings.tsx
-// Settings: IG account connections + plan upgrade CTA
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Instagram, Plug, PlugZap, RefreshCw, Trash2, User, Mail, Key, Save } from 'lucide-react';
+import { Instagram, Plug, RefreshCw, Trash2, User, Mail, Key, Save, Moon, Sun, Monitor, Settings as SettingsIcon, CreditCard, AlertTriangle, ChevronLeft } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { useAuthStore } from '../../stores/auth.store.js';
+import { useThemeStore } from '../../stores/theme.store.js';
+import { clsx } from 'clsx';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+
+type SettingsTab = 'general' | 'accounts' | 'billing' | 'danger';
+
+const SETTINGS_TABS = [
+  { id: 'general', label: 'General', shortLabel: 'General', icon: SettingsIcon },
+  { id: 'accounts', label: 'Instagram Accounts', shortLabel: 'Accounts', icon: Instagram },
+  { id: 'billing', label: 'Billing', shortLabel: 'Billing', icon: CreditCard },
+  { id: 'danger', label: 'Danger Zone', shortLabel: 'Danger', icon: AlertTriangle },
+];
 
 export default function Settings() {
   const { user, setAuth } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  const activeTab = (searchParams.get('tab') as SettingsTab) || 'general';
+  const setActiveTab = (tab: SettingsTab) => {
+    setSearchParams({ tab });
+  };
+
+  // Profile Form State
   const [name, setName] = useState(user?.name ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [password, setPassword] = useState('');
@@ -17,7 +36,6 @@ export default function Settings() {
   const updateProfileMutation = useMutation({
     mutationFn: (payload: Record<string, string>) => api.patch('/auth/me', payload),
     onSuccess: (res) => {
-      // Keep existing token, just update user data
       const currentToken = useAuthStore.getState().token;
       if (currentToken) {
         setAuth(currentToken, res.data.data);
@@ -56,12 +74,6 @@ export default function Settings() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ig-accounts'] }),
   });
 
-  const statusBadge = (status: string) => {
-    if (status === 'active') return <span className="badge badge-green">● Active</span>;
-    if (status === 'token_expired') return <span className="badge badge-amber">⚠ Token expired</span>;
-    return <span className="badge badge-red">Revoked</span>;
-  };
-
   const handleConnectAccount = async () => {
     try {
       const res = await api.get('/oauth/instagram/authorize');
@@ -72,133 +84,218 @@ export default function Settings() {
   };
 
   return (
-    <div className="section-padding max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
-
-      {/* ── Profile & Security ── */}
-      <div className="card p-6 mb-6">
-        <h2 className="section-title mb-4">Profile & Security</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-white/60 mb-2">Full name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input 
-                className="input pl-9" 
-                value={name} 
-                onChange={(e) => setName(e.currentTarget.value)} 
-                placeholder="John Doe"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-white/60 mb-2">Email address</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input 
-                type="email"
-                className="input pl-9" 
-                value={email} 
-                onChange={(e) => setEmail(e.currentTarget.value)} 
-                placeholder="john@example.com"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-white/60 mb-2">New password (optional)</label>
-            <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input 
-                type="password"
-                className="input pl-9" 
-                value={password} 
-                onChange={(e) => setPassword(e.currentTarget.value)} 
-                placeholder="Leave blank to keep current"
-              />
-            </div>
-          </div>
-          <button 
-            onClick={handleUpdateProfile}
-            disabled={updateProfileMutation.isPending || (!name && !email && !password)}
-            className="btn-primary"
+    <div className="layout-container py-8 md:py-12 flex flex-col md:flex-row gap-8">
+      {/* ── Left Category Tree (Desktop Only) ── */}
+      <div className="hidden md:block w-64 flex-shrink-0 space-y-1">
+        <h1 className="text-display-lg text-theme-text-primary mb-8">Settings</h1>
+        
+        {SETTINGS_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={clsx(
+              'w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+              activeTab === tab.id
+                ? 'bg-theme-border/50 text-theme-text-primary'
+                : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/30'
+            )}
           >
-            <Save className="w-4 h-4" />
-            {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+            {tab.label}
           </button>
-        </div>
-      </div>
-
-      {/* ── Connected accounts ── */}
-      <div className="card p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h2 className="section-title">Instagram accounts</h2>
-          <button onClick={handleConnectAccount} className="btn-primary text-xs py-2">
-            <Instagram className="w-3.5 h-3.5" />
-            Connect account
-          </button>
-        </div>
-
-        {isLoading && <div className="skeleton h-20 rounded-xl" />}
-
-        {!isLoading && !accounts?.length && (
-          <div className="text-center py-10 text-white/30">
-            <Plug className="w-10 h-10 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No Instagram accounts connected yet.</p>
-          </div>
-        )}
-
-        {accounts?.map((account: Record<string, unknown>) => (
-          <div key={String(account['_id'])} className="flex items-center gap-4 p-4 rounded-xl border border-white/8 mb-3 last:mb-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              <Instagram className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">@{String(account['username'] ?? '')}</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                {statusBadge(String(account['status'] ?? 'active'))}
-                <span className="badge badge-gray">{String(account['accountType'] ?? '')}</span>
-              </div>
-              {!!account['tokenExpiresAt'] && (
-                <p className="text-xs text-white/30 mt-0.5">
-                  Token expires {new Date(String(account['tokenExpiresAt'])).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => refreshMutation.mutate(String(account['_id']))}
-                disabled={refreshMutation.isPending}
-                className="btn-ghost p-2 text-white/40 hover:text-emerald-400"
-                title="Refresh token"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => disconnectMutation.mutate(String(account['_id']))}
-                className="btn-ghost p-2 text-white/40 hover:text-red-400"
-                title="Disconnect"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
         ))}
       </div>
 
-      {/* ── Plan ── */}
-      <div className="card p-6">
-        <h2 className="section-title mb-4">Plan & billing</h2>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-brand-500/10 border border-brand-500/20">
-          <div>
-            <p className="text-sm font-semibold text-white capitalize">{user?.plan} plan</p>
-            <p className="text-xs text-white/40 mt-0.5">
-              {user?.plan === 'free' ? 'Upgrade for more DMs and accounts' : 'Billed monthly'}
-            </p>
+      {/* ── Right Content Area ── */}
+      <div className="flex-1 max-w-2xl">
+        {activeTab === 'general' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* Theme Settings */}
+            <div className="card p-6">
+              <h2 className="text-title mb-6">Appearance</h2>
+              <div className="flex flex-col sm:flex-row gap-4">
+                {[
+                  { id: 'light', icon: Sun, label: 'Light' },
+                  { id: 'dark', icon: Moon, label: 'Dark' },
+                  { id: 'system', icon: Monitor, label: 'System' },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTheme(t.id as any)}
+                    className={clsx(
+                      'flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all',
+                      theme === t.id
+                        ? 'border-theme-text-primary bg-theme-border/20'
+                        : 'border-theme-border hover:border-theme-border/80 bg-theme-bg'
+                    )}
+                  >
+                    <t.icon className={clsx('w-6 h-6', theme === t.id ? 'text-theme-text-primary' : 'text-theme-text-secondary')} />
+                    <span className="text-sm font-semibold text-theme-text-primary">{t.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Profile Settings */}
+            <div className="card p-6">
+              <h2 className="text-title mb-1">Profile & Security</h2>
+              <p className="text-sm text-theme-text-secondary mb-6">Update your account information.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-label font-medium mb-2">Full name</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-text-secondary" />
+                    <input 
+                      className="input pl-9" 
+                      value={name} 
+                      onChange={(e) => setName(e.currentTarget.value)} 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-label font-medium mb-2">Email address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-text-secondary" />
+                    <input 
+                      type="email"
+                      className="input pl-9" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.currentTarget.value)} 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-label font-medium mb-2">New password (optional)</label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-text-secondary" />
+                    <input 
+                      type="password"
+                      className="input pl-9" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.currentTarget.value)} 
+                      placeholder="Leave blank to keep current"
+                    />
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-theme-border">
+                  <button 
+                    onClick={handleUpdateProfile}
+                    disabled={updateProfileMutation.isPending || (!name && !email && !password)}
+                    className="btn-primary"
+                  >
+                    <Save className="w-4 h-4" />
+                    {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          {user?.plan === 'free' && (
-            <button className="btn-primary text-xs py-2">Upgrade →</button>
-          )}
-        </div>
+        )}
+
+        {activeTab === 'accounts' && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="card p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-title mb-1">Instagram Accounts</h2>
+                  <p className="text-sm text-theme-text-secondary">Manage connected profiles and tokens.</p>
+                </div>
+                <button onClick={handleConnectAccount} className="btn-primary shrink-0">
+                  <Instagram className="w-4 h-4" />
+                  Connect Account
+                </button>
+              </div>
+
+              {isLoading && <div className="animate-pulse bg-theme-border/50 h-20 rounded-xl" />}
+
+              {!isLoading && !accounts?.length && (
+                <div className="text-center py-12">
+                  <Plug className="w-12 h-12 mx-auto mb-4 text-theme-text-secondary/50" />
+                  <p className="text-theme-text-secondary font-medium">No Instagram accounts connected.</p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {accounts?.map((account: any) => (
+                  <div key={account._id} className="flex items-center gap-4 p-4 rounded-xl border border-theme-border bg-theme-bg">
+                    <div className="w-10 h-10 rounded-full bg-gradient-ig flex items-center justify-center text-white flex-shrink-0">
+                      <Instagram className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-theme-text-primary">@{account.username}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="flex items-center gap-1.5 text-xs text-theme-text-secondary">
+                          <span className={clsx(
+                            'w-2 h-2 rounded-full',
+                            account.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+                          )} />
+                          {account.status === 'active' ? 'Active' : 'Expired'}
+                        </span>
+                        <span className="text-xs text-theme-text-secondary bg-theme-border px-1.5 py-0.5 rounded-md">
+                          {account.accountType}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => refreshMutation.mutate(account._id)}
+                        disabled={refreshMutation.isPending}
+                        className="btn-ghost"
+                        title="Refresh token"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => disconnectMutation.mutate(account._id)}
+                        className="btn-ghost hover:text-red-500 hover:bg-red-500/10"
+                        title="Disconnect"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'billing' && (
+          <div className="card p-6 animate-fade-in">
+            <h2 className="text-title mb-1">Plan & Billing</h2>
+            <p className="text-sm text-theme-text-secondary mb-6">Manage your subscription.</p>
+            
+            <div className="flex items-center justify-between p-5 rounded-xl border border-theme-border bg-theme-bg">
+              <div>
+                <p className="font-semibold text-theme-text-primary text-lg capitalize">{user?.plan} Plan</p>
+                <p className="text-sm text-theme-text-secondary mt-1">
+                  {user?.plan === 'free' ? 'Limited to 14 days and basic features.' : 'Active subscription.'}
+                </p>
+              </div>
+              {user?.plan === 'free' && (
+                <button className="btn-primary">Upgrade</button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'danger' && (
+          <div className="card p-6 animate-fade-in border-red-500/20 bg-red-500/5">
+            <h2 className="text-title text-red-500 mb-1">Danger Zone</h2>
+            <p className="text-sm text-red-500/80 mb-6">Irreversible and destructive actions.</p>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-theme-text-primary">Delete Account</p>
+                <p className="text-sm text-theme-text-secondary mt-1">Permanently delete your account and all data.</p>
+              </div>
+              <button className="px-4 py-2 rounded-lg font-medium text-sm text-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+                Delete Account
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
