@@ -107,9 +107,11 @@ export default function ProductTour() {
   const handleTourCallback = (data: CallBackProps) => {
     const { status } = data;
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      // Mark tour done in local state (API call would sync to DB)
-      updateUser({ onboarding: { ...(user?.onboarding || { checklist: [] }), tourDone: true } });
-      // TODO: PATCH /api/v1/auth/me to persist tourDone to DB
+      const newOnboarding = { ...(user?.onboarding || { checklist: [] }), tourDone: true };
+      updateUser({ onboarding: newOnboarding });
+      import('../../api/client.js').then(({ api }) => {
+        api.patch('/auth/me', { onboarding: newOnboarding }).catch(console.error);
+      });
     }
   };
 

@@ -158,14 +158,31 @@ router.get('/me', requireAuth, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-/** PATCH /auth/me (update name) */
+/** PATCH /auth/me (update profile) */
 router.patch('/me', requireAuth, async (req, res, next) => {
   try {
-    const { name } = req.body as { name?: string };
-    if (!name?.trim()) throw new AppError(400, 'validation', 'Name is required');
+    const { name, email, password } = req.body as { name?: string; email?: string; password?: string };
+    const updateData: Record<string, unknown> = {};
+
+    if (name?.trim()) updateData.name = name.trim();
+    
+    if (email?.trim()) {
+      const existing = await UserModel.findOne({ email: email.trim(), _id: { $ne: req.user!.sub }, deletedAt: null });
+      if (existing) throw new AppError(409, 'email_taken', 'Email already in use');
+      updateData.email = email.trim();
+    }
+    
+    if (password) {
+      updateData.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new AppError(400, 'validation', 'Nothing to update');
+    }
+
     const user = await UserModel.findByIdAndUpdate(
       req.user!.sub,
-      { name: name.trim() },
+      updateData,
       { new: true, select: '-passwordHash' }
     );
     res.json({ data: user });

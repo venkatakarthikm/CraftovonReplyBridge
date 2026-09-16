@@ -15,6 +15,16 @@ export interface IMedia extends Document {
   commentCount: number;
   source: 'backfill' | 'auto';  // auto = first seen via webhook
   automationCount: number;        // denormalized counter for reels list UI
+  insights?: {
+    likes?: number;
+    comments?: number;
+    saved?: number;
+    shares?: number;
+    plays?: number;
+    reach?: number;
+    ig_reels_avg_watch_time?: number;
+    ig_reels_video_view_completion_rate?: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +50,16 @@ const MediaSchema = new Schema<IMedia>(
       default: 'auto',
     },
     automationCount: { type: Number, default: 0 },
+    insights: {
+      likes: { type: Number },
+      comments: { type: Number },
+      saved: { type: Number },
+      shares: { type: Number },
+      plays: { type: Number },
+      reach: { type: Number },
+      ig_reels_avg_watch_time: { type: Number },
+      ig_reels_video_view_completion_rate: { type: Number },
+    },
   },
   { timestamps: true }
 );

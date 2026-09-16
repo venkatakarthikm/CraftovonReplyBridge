@@ -22,25 +22,68 @@ router.get('/', async (req, res, next) => {
       throw new AppError(403, 'forbidden', 'Not your IG account');
     }
 
-    const filter: Record<string, unknown> = { igAccountId };
+    const filter: Record<string, unknown> = { igAccountId: account._id };
     if (type) filter['type'] = type;
-    if (search) filter['caption'] = { $regex: search, $options: 'i' };
-    if (automated === 'on') filter['automationCount'] = { $gt: 0 };
-    if (automated === 'off') filter['automationCount'] = 0;
-    if (cursor) {
-      const [cursorDate, cursorId] = cursor.split('_');
-      filter['$or'] = [
-        { postedAt: { $lt: new Date(cursorDate ?? '') } },
-        { postedAt: new Date(cursorDate ?? ''), _id: { $lt: new Types.ObjectId(cursorId ?? '') } },
-      ];
+
+    const $and: Record<string, unknown>[] = [];
+
+    if (search) {
+      const matchedAutomations = await AutomationModel.find({
+        igAccountId: account._id,
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { 'link.url': { $regex: search, $options: 'i' } }
+        ]
+      }).select('mediaId').lean();
+      
+      $and.push({
+        $or: [
+          { caption: { $regex: search, $options: 'i' } },
+          { mediaId: { $in: matchedAutomations.map(a => a.mediaId) } }
+        ]
+      });
     }
 
+    if (automated === 'active' || automated === 'inactive') {
+      const matchingStatus = await AutomationModel.find({
+        igAccountId: account._id,
+        enabled: automated === 'active'
+      }).select('mediaId').lean();
+      
+      $and.push({ mediaId: { $in: matchingStatus.map(a => a.mediaId) } });
+    } else if (automated === 'none') {
+      const allAutomations = await AutomationModel.find({ igAccountId: account._id }).select('mediaId').lean();
+      $and.push({ mediaId: { $nin: allAutomations.map(a => a.mediaId) } });
+    }
+
+    if (cursor) {
+      const [cursorDate, cursorId] = cursor.split('_');
+      // For custom sorting, cursor is different, but for simplicity we assume cursor is always date-based or we skip cursor on custom sorts for now
+      if (sort === 'postedAt') {
+        $and.push({
+          $or: [
+            { postedAt: { $lt: new Date(cursorDate ?? '') } },
+            { postedAt: new Date(cursorDate ?? ''), _id: { $lt: new Types.ObjectId(cursorId ?? '') } },
+          ]
+        });
+      }
+    }
+
+    if ($and.length > 0) {
+      filter['$and'] = $and;
+    }
+
+    const sortField = sort === 'postedAt' ? 'postedAt' : `insights.${sort}`;
+    const sortObj: Record<string, 1 | -1> = { [sortField]: -1 };
+    if (sortField !== '_id') sortObj['_id'] = -1;
+
     const items = await MediaModel.find(filter)
-      .sort({ postedAt: -1, _id: -1 })
+      .sort(sortObj)
       .limit(Math.min(Number(limit), 100))
       .lean();
 
-    // Attach automationId to media items that have automations so the UI toggle works
+    // Attach automation to media items so UI knows exact status
+
     if (items.length > 0) {
       const mediaIds = items.map(item => item.mediaId);
       const automations = await AutomationModel.find({ mediaId: { $in: mediaIds } }).lean();
@@ -48,6 +91,7 @@ router.get('/', async (req, res, next) => {
       for (const item of items) {
         const automation = automations.find(a => a.mediaId === item.mediaId);
         if (automation) {
+          (item as any).automation = automation; // Attach full automation object
           (item as any).automationId = automation._id;
         }
       }

@@ -5,9 +5,14 @@ import { Schema, model, Document, Types } from 'mongoose';
 export interface ITemplate extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId | null; // null for system templates
-  kind: 'private_reply' | 'comment_reply' | 'dm_reply';
+  kind: 'bundle' | 'private_reply' | 'comment_reply' | 'dm_reply';
   name: string;
-  body: string;
+  body?: string;
+  bundle?: {
+    privateReply?: string;
+    commentReply?: string;
+    linkDm?: string;
+  };
   isSystem: boolean; // true = shipped library, cannot delete (only fork)
   createdAt: Date;
   updatedAt: Date;
@@ -22,11 +27,16 @@ const TemplateSchema = new Schema<ITemplate>(
     },
     kind: {
       type: String,
-      enum: ['private_reply', 'comment_reply', 'dm_reply'],
+      enum: ['bundle', 'private_reply', 'comment_reply', 'dm_reply'],
       required: true,
     },
     name: { type: String, required: true, trim: true },
-    body: { type: String, required: true },
+    body: { type: String, default: '' },
+    bundle: {
+      privateReply: { type: String },
+      commentReply: { type: String },
+      linkDm: { type: String },
+    },
     isSystem: { type: Boolean, default: false },
   },
   { timestamps: true }

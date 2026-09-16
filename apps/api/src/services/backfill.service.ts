@@ -26,6 +26,11 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
 
     for (const item of items) {
       const mediaType = mapMediaType(item);
+      let insights: Record<string, number> | undefined;
+
+      if (mediaType === 'REEL') {
+        insights = await mediaClient.getReelInsights(item.id);
+      }
 
       try {
         await MediaModel.updateOne(
@@ -45,6 +50,7 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
               caption: item.caption ?? '',
               permalink: item.permalink ?? '',
               thumbnailUrl: item.thumbnail_url ?? '',
+              ...(insights && Object.keys(insights).length > 0 ? { insights } : {}),
             }
           },
           { upsert: true }

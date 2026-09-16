@@ -2,7 +2,7 @@
 // Core CRUD for automations + toggle + duplicate + test
 import { Router } from 'express';
 import { Types } from 'mongoose';
-import { AutomationModel, IgAccountModel, AuditLogModel, MessageLogModel, MediaModel } from '@replybridge/db';
+import { AutomationModel, IgAccountModel, AuditLogModel, MessageLogModel, MediaModel, UserModel } from '@replybridge/db';
 import { CreateAutomationSchema, PatchAutomationSchema, ToggleAutomationSchema } from '@replybridge/schemas';
 import { requireAuth } from '../middleware/auth.js';
 import { AppError, validate } from '../middleware/errors.js';
@@ -75,6 +75,11 @@ router.post('/', async (req, res, next) => {
     if (body.backfill?.enabled && body.mediaId) {
       await enqueueCommentBackfill(String(automation._id), account.igId, body.mediaId, String(account._id));
     }
+
+    await UserModel.updateOne(
+      { _id: req.user!.sub },
+      { $addToSet: { 'onboarding.checklist': 'first_automation' } }
+    );
 
     res.status(201).json({ data: automation });
   } catch (e) { next(e); }

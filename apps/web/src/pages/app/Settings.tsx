@@ -1,13 +1,45 @@
 // apps/web/src/pages/app/Settings.tsx
 // Settings: IG account connections + plan upgrade CTA
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Instagram, Plug, PlugZap, RefreshCw, Trash2 } from 'lucide-react';
+import { Instagram, Plug, PlugZap, RefreshCw, Trash2, User, Mail, Key, Save } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { useAuthStore } from '../../stores/auth.store.js';
 
 export default function Settings() {
-  const { user } = useAuthStore();
+  const { user, setAuth } = useAuthStore();
   const queryClient = useQueryClient();
+
+  const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [password, setPassword] = useState('');
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (payload: Record<string, string>) => api.patch('/auth/me', payload),
+    onSuccess: (res) => {
+      // Keep existing token, just update user data
+      const currentToken = useAuthStore.getState().token;
+      if (currentToken) {
+        setAuth(currentToken, res.data.data);
+      }
+      setPassword('');
+      alert('Profile updated successfully');
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.error?.message ?? 'Failed to update profile');
+    }
+  });
+
+  const handleUpdateProfile = () => {
+    const payload: Record<string, string> = {};
+    if (name.trim() && name !== user?.name) payload.name = name.trim();
+    if (email.trim() && email !== user?.email) payload.email = email.trim();
+    if (password) payload.password = password;
+    
+    if (Object.keys(payload).length > 0) {
+      updateProfileMutation.mutate(payload);
+    }
+  };
 
   const { data: accounts, isLoading } = useQuery({
     queryKey: ['ig-accounts'],
@@ -42,6 +74,59 @@ export default function Settings() {
   return (
     <div className="section-padding max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
+
+      {/* ── Profile & Security ── */}
+      <div className="card p-6 mb-6">
+        <h2 className="section-title mb-4">Profile & Security</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-white/60 mb-2">Full name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input 
+                className="input pl-9" 
+                value={name} 
+                onChange={(e) => setName(e.currentTarget.value)} 
+                placeholder="John Doe"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-white/60 mb-2">Email address</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input 
+                type="email"
+                className="input pl-9" 
+                value={email} 
+                onChange={(e) => setEmail(e.currentTarget.value)} 
+                placeholder="john@example.com"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-white/60 mb-2">New password (optional)</label>
+            <div className="relative">
+              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input 
+                type="password"
+                className="input pl-9" 
+                value={password} 
+                onChange={(e) => setPassword(e.currentTarget.value)} 
+                placeholder="Leave blank to keep current"
+              />
+            </div>
+          </div>
+          <button 
+            onClick={handleUpdateProfile}
+            disabled={updateProfileMutation.isPending || (!name && !email && !password)}
+            className="btn-primary"
+          >
+            <Save className="w-4 h-4" />
+            {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
 
       {/* ── Connected accounts ── */}
       <div className="card p-6 mb-6">

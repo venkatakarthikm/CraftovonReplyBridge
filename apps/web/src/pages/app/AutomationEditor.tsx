@@ -1,7 +1,7 @@
 // apps/web/src/pages/app/AutomationEditor.tsx
 // Full automation editor: trigger, DM text, link, backfill toggle, comment reply
 // Tour targets: #tour-link-field, #tour-backfill-toggle
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Zap, Link2, MessageCircle, Clock, Save } from 'lucide-react';
@@ -31,6 +31,20 @@ export default function AutomationEditor() {
   const [commentReplyText, setCommentReplyText] = useState('📩 Check your DMs — sent you the link!');
   const [backfillEnabled, setBackfillEnabled] = useState(false);
   const [name, setName] = useState('My Automation');
+
+  // Populate form if we are editing an existing automation
+  useEffect(() => {
+    if (existing) {
+      setName(existing.name ?? 'My Automation');
+      setTriggerMode(existing.trigger?.mode ?? 'any_comment');
+      setKeywords((existing.trigger?.keywords ?? []).join(', '));
+      setDmText(existing.privateReply?.text ?? '');
+      setLink(existing.link?.url ?? '');
+      setCommentReplyEnabled(existing.commentReply?.enabled ?? false);
+      setCommentReplyText(existing.commentReply?.text ?? '');
+      setBackfillEnabled(existing.backfill?.enabled ?? false);
+    }
+  }, [existing]);
 
   const saveMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) =>

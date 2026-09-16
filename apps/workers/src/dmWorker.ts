@@ -11,6 +11,7 @@ import {
   ConversationStateModel,
   AutomationModel,
   UsageCounterModel,
+  UserModel,
 } from '@replybridge/db';
 import { RealGraphMessagingClient } from '@replybridge/graph/messaging';
 import { GraphCommentsClient } from '@replybridge/graph/comments';
@@ -127,6 +128,10 @@ async function handlePrivateReply(job: Job): Promise<void> {
         { userId: automation.userId, month },
         { $inc: { dmsSent: 1 } },
         { upsert: true }
+      );
+      await UserModel.updateOne(
+        { _id: automation.userId },
+        { $addToSet: { 'onboarding.checklist': 'test_sent' } }
       );
     }
 

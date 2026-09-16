@@ -60,8 +60,8 @@ export default function AppLayout() {
       {/* ── Mobile Top Header ── */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/8 bg-surface-100/80 backdrop-blur-md absolute top-0 w-full z-20">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center shadow-brand">
-            <Zap className="w-3.5 h-3.5 text-white" />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
+            <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
           </div>
           <span className="font-bold text-sm text-white">ReplyBridge</span>
         </div>
@@ -84,15 +84,15 @@ export default function AppLayout() {
       {/* ── Sidebar ── */}
       <aside 
         className={clsx(
-          "fixed md:static inset-y-0 left-0 z-40 w-64 flex flex-col border-r border-white/8 bg-surface-100 backdrop-blur-xl transition-transform duration-300 md:transform-none flex-shrink-0",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          "fixed md:static inset-y-0 right-0 md:left-0 z-40 w-72 md:w-64 flex flex-col border-l md:border-l-0 md:border-r border-white/8 bg-surface-100 backdrop-blur-xl transition-transform duration-300 md:transform-none flex-shrink-0",
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"
         )}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-brand flex items-center justify-center shadow-brand">
-              <Zap className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="font-bold text-sm text-white">ReplyBridge</span>
@@ -108,40 +108,43 @@ export default function AppLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 md:px-3 py-6 md:py-4 overflow-y-auto flex flex-col gap-2 md:gap-1">
           {NAV_ITEMS.map(({ to, icon: Icon, label, tourId }) => (
             <NavLink
               key={to}
               to={to}
               id={tourId}
               className={({ isActive }) =>
-                clsx('nav-link', isActive && 'active')
+                clsx(
+                  'nav-link flex items-center gap-4 md:gap-3 px-5 py-4 md:px-3 md:py-2 rounded-2xl md:rounded-xl text-lg md:text-sm font-medium transition-colors',
+                  isActive ? 'active bg-brand-500/10 text-brand-400' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                )
               }
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
+              <Icon className="w-6 h-6 md:w-4 md:h-4 flex-shrink-0" />
               {label}
             </NavLink>
           ))}
         </nav>
 
         {/* User footer */}
-        <div className="px-3 py-4 border-t border-white/8">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl mb-2">
-            <div className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+        <div className="p-4 md:p-3 border-t border-white/8">
+          <div className="flex items-center gap-3 px-3 py-3 md:py-2 bg-white/5 rounded-2xl md:rounded-xl">
+            <div className="w-10 h-10 md:w-7 md:h-7 rounded-full bg-brand-600 flex items-center justify-center text-sm md:text-xs font-bold text-white flex-shrink-0">
               {user?.name?.[0]?.toUpperCase() ?? '?'}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-white truncate">{user?.name}</p>
-              <p className="text-[10px] text-white/40 truncate">{user?.plan?.toUpperCase()} plan</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-base md:text-xs font-medium text-white truncate">{user?.name}</p>
+              <p className="text-sm md:text-[10px] text-white/40 truncate">{user?.plan?.toUpperCase()} plan</p>
             </div>
+            <button
+              onClick={handleLogout}
+              className="p-2.5 md:p-2 ml-1 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+              title="Sign out"
+            >
+              <LogOut className="w-6 h-6 md:w-4 md:h-4" />
+            </button>
           </div>
-          <button
-            onClick={handleLogout}
-            className="nav-link w-full text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign out
-          </button>
         </div>
       </aside>
 
@@ -151,13 +154,15 @@ export default function AppLayout() {
           <Outlet />
         </div>
         {/* Footer */}
-        <footer className="border-t border-white/8 py-6 px-6 text-center text-xs text-white/30 mt-auto">
-          <p>© 2025 Craftovon ReplyBridge. All rights reserved.</p>
-          <div className="flex items-center justify-center gap-4 mt-2">
-            <a href="/privacy-policy" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="/terms" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Terms of Service</a>
-          </div>
-        </footer>
+        {['/dashboard', '/settings', '/help'].includes(location.pathname) && (
+          <footer className="border-t border-white/8 py-6 px-6 text-center text-xs text-white/30 mt-auto flex-shrink-0">
+            <p>© 2025 Craftovon ReplyBridge. All rights reserved.</p>
+            <div className="flex items-center justify-center gap-4 mt-2">
+              <a href="/privacy-policy" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/terms" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Terms of Service</a>
+            </div>
+          </footer>
+        )}
       </main>
 
       {/* ── Guided product tour ── */}

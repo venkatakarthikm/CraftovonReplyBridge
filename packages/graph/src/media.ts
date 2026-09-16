@@ -45,6 +45,28 @@ export class GraphMediaClient {
     return res.data;
   }
 
+  /** Fetch insights for a specific Reel */
+  async getReelInsights(mediaId: string): Promise<Record<string, number>> {
+    try {
+      const res = await this.client.get<{ data: { name: string; values: { value: number }[] }[] }>(
+        `/${mediaId}/insights`,
+        {
+          params: {
+            metric: 'comments,likes,plays,reach,saved,shares,ig_reels_avg_watch_time,ig_reels_video_view_completion_rate',
+          },
+        }
+      );
+      const insights: Record<string, number> = {};
+      for (const item of res.data.data) {
+        insights[item.name] = item.values[0]?.value ?? 0;
+      }
+      return insights;
+    } catch (e) {
+      // Return empty if insights are not available (e.g. not a Reel, or no permissions)
+      return {};
+    }
+  }
+
   /**
    * Refresh a long-lived token.
    * META-VERIFIED: grant_type=ig_refresh_token; token must be ≥24h old.
