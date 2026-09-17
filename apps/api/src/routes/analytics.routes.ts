@@ -59,6 +59,46 @@ router.get('/overview', async (req, res, next) => {
       .limit(10)
       .lean();
 
+    // Daily Activity Aggregation (for chart)
+    const dailyActivity = await MessageLogModel.aggregate([
+      {
+        $match: {
+          automationId: { $in: automationIds.map((a) => a._id) },
+          createdAt: { $gte: fromDate, $lte: toDate },
+          status: 'sent', // Only count successfully sent logs
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          dmsSent: {
+            $sum: { $cond: [{ $ne: ["$type", "link_tap"] }, 1, 0] }
+          },
+          linkTaps: {
+            $sum: { $cond: [{ $eq: ["$type", "link_tap"] }, 1, 0] }
+          },
+        },
+      },
+    ]);
+
+    // Build dense array of dates for the chart
+    const dailyMap = new Map<string, { dmsSent: number; linkTaps: number }>();
+    for (const day of dailyActivity) {
+      dailyMap.set(day._id, { dmsSent: day.dmsSent, linkTaps: day.linkTaps });
+    }
+
+    const daysCount = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000);
+    const daily = Array.from({ length: daysCount }, (_, i) => {
+      const d = new Date(toDate.getTime() - (daysCount - 1 - i) * 86400000);
+      const key = d.toISOString().slice(0, 10);
+      const stats = dailyMap.get(key) || { dmsSent: 0, linkTaps: 0 };
+      return {
+        date: d.toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+        dmsSent: stats.dmsSent,
+        linkTaps: stats.linkTaps,
+      };
+    });
+
     res.json({
       data: {
         dmsSentToday,
@@ -75,7 +115,7 @@ router.get('/overview', async (req, res, next) => {
           linkTaps: a.stats?.linkTaps ?? 0,
         })),
         recentMessages,
-        daily: [], // Placeholder — full implementation uses aggregation pipeline per day
+        daily,
       },
     });
   } catch (e) { next(e); }

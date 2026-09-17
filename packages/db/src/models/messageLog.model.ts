@@ -8,7 +8,7 @@ export interface IMessageLog extends Document {
   recipientId: string;
   automationId: Types.ObjectId;
   commentId: string | null;
-  type: 'private_reply' | 'follow_up_dm' | 'comment_reply' | 'dm_only_reply';
+  type: 'private_reply' | 'follow_up_dm' | 'comment_reply' | 'dm_only_reply' | 'link_tap';
   payloadJson: Record<string, unknown>; // exactly what was POSTed (tokens redacted)
   graphMessageId: string | null;
   status: 'queued' | 'sent' | 'failed' | 'skipped';
@@ -31,7 +31,7 @@ const MessageLogSchema = new Schema<IMessageLog>(
     commentId: { type: String, default: null },
     type: {
       type: String,
-      enum: ['private_reply', 'follow_up_dm', 'comment_reply', 'dm_only_reply'],
+      enum: ['private_reply', 'follow_up_dm', 'comment_reply', 'dm_only_reply', 'link_tap'],
       required: true,
     },
     payloadJson: { type: Schema.Types.Mixed, default: {} },

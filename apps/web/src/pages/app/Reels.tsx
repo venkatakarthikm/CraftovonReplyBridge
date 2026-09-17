@@ -207,81 +207,94 @@ function ReelCard({
   const insights = media['insights'] as Record<string, number> | undefined;
 
   return (
-    <div className="card group overflow-hidden border-theme-border hover:border-theme-text-primary/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] flex flex-col h-[380px] relative">
-      {/* Thumbnail Area */}
-      <div className="relative h-[220px] bg-theme-border overflow-hidden flex-shrink-0">
+    <div className="group relative flex flex-col bg-theme-surface rounded-3xl overflow-hidden border border-theme-border/60 hover:border-theme-border shadow-sm hover:shadow-xl transition-all duration-300">
+      
+      {/* Top section: Thumbnail */}
+      <div className="relative aspect-[4/5] bg-theme-border/30 overflow-hidden">
         {media['thumbnailUrl'] ? (
           <img
             src={String(media['thumbnailUrl'])}
             alt="Reel thumbnail"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon className="w-10 h-10 text-theme-text-secondary/30" />
+            <ImageIcon className="w-10 h-10 text-theme-text-secondary/20" />
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10 pointer-events-none" />
+        {/* Subtle gradient for badges */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
 
-        {/* Floating Badges */}
-        <div className="absolute top-3 left-3">
+        {/* Status Badge (Top Right) */}
+        <div className="absolute top-4 right-4">
           {isActive ? (
-             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/90 backdrop-blur-md shadow-sm border border-emerald-400/50">
-               <Zap className="w-3 h-3 text-white fill-white" />
-               <span className="text-[10px] font-bold text-white uppercase tracking-wide">Automated</span>
+             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/90 backdrop-blur-md shadow-sm border border-emerald-400/50">
+               <Zap className="w-3.5 h-3.5 text-white fill-white" />
+               <span className="text-[10px] font-bold text-white uppercase tracking-widest">Active</span>
              </div>
           ) : hasAutomation ? (
-             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-theme-surface/90 backdrop-blur-md shadow-sm border border-theme-border text-theme-text-primary">
-               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-               <span className="text-[10px] font-bold uppercase tracking-wide">Paused</span>
+             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md shadow-sm border border-white/10 text-white">
+               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+               <span className="text-[10px] font-bold uppercase tracking-widest">Paused</span>
              </div>
           ) : null}
         </div>
-
-        {/* Video Stats Overlay */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center gap-3 text-white text-[11px] font-medium drop-shadow-md">
-           <div className="flex items-center gap-1"><Play className="w-3 h-3 fill-white" /> {insights?.plays ?? 0}</div>
-           <div className="flex items-center gap-1"><MessageCircle className="w-3 h-3 fill-white" /> {insights?.comments ?? 0}</div>
-           <div className="flex items-center gap-1"><Heart className="w-3 h-3 fill-white" /> {insights?.likes ?? 0}</div>
-        </div>
       </div>
 
-      {/* Card Body */}
-      <div className="p-4 flex flex-col flex-1 bg-theme-surface">
-        <p className="text-xs text-theme-text-secondary line-clamp-2 leading-relaxed mb-4 flex-1">
-          {String(media['caption'] ?? '').slice(0, 80) || 'No caption provided.'}
+      {/* Content Section */}
+      <div className="flex flex-col flex-1 p-5">
+        
+        {/* Stats Strip */}
+        <div className="flex items-center justify-between mb-4 pb-4 border-b border-theme-border/50">
+           <div className="flex items-center gap-4 text-theme-text-secondary">
+             <div className="flex items-center gap-1.5" title="Views">
+               <Play className="w-4 h-4" /> 
+               <span className="text-sm font-semibold text-theme-text-primary">{insights?.views ?? 0}</span>
+             </div>
+             <div className="flex items-center gap-1.5" title="Comments">
+               <MessageCircle className="w-4 h-4" /> 
+               <span className="text-sm font-semibold text-theme-text-primary">{String(media['commentCount'] ?? 0)}</span>
+             </div>
+             <div className="flex items-center gap-1.5" title="Likes">
+               <Heart className="w-4 h-4" /> 
+               <span className="text-sm font-semibold text-theme-text-primary">{insights?.likes ?? 0}</span>
+             </div>
+           </div>
+        </div>
+
+        {/* Caption */}
+        <p className="text-sm text-theme-text-secondary line-clamp-2 leading-relaxed flex-1 mb-6">
+          {String(media['caption'] ?? '').trim() ? String(media['caption'] ?? '').trim() : <span className="italic opacity-50">No caption</span>}
         </p>
 
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-theme-border/60">
-           <div className="flex items-center gap-2 text-xs font-semibold text-theme-text-primary">
+        {/* Action Bar */}
+        <div className="flex items-center justify-between mt-auto">
+           <div className="flex items-center gap-3">
               <button
                 id="tour-toggle"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (automation?._id) {
-                    onToggle(automation._id, !isActive);
-                  } else {
-                    onEdit();
-                  }
+                  if (automation?._id) onToggle(automation._id, !isActive);
+                  else onEdit();
                 }}
-                className={clsx('toggle', isActive ? 'toggle-on' : 'toggle-off')}
+                className={clsx('toggle scale-90 origin-left', isActive ? 'toggle-on' : 'toggle-off')}
                 aria-label={isActive ? 'Disable automation' : 'Enable automation'}
               >
                 <span className="toggle-thumb" />
               </button>
-              <span className={isActive ? 'text-theme-text-primary' : 'text-theme-text-secondary'}>
-                {isActive ? 'On' : 'Off'}
+              <span className={clsx("text-xs font-semibold", isActive ? 'text-theme-text-primary' : 'text-theme-text-secondary')}>
+                {isActive ? 'Automation On' : 'Automation Off'}
               </span>
            </div>
 
           <button
             id="tour-automation-btn"
             onClick={onEdit}
-            className="flex items-center gap-1.5 text-xs font-semibold text-theme-text-secondary hover:text-theme-text-primary transition-colors bg-theme-border/30 hover:bg-theme-border px-3 py-1.5 rounded-lg"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-theme-border/30 hover:bg-theme-border text-theme-text-secondary hover:text-theme-text-primary transition-colors"
+            title="Edit Automation"
           >
-            <Settings2 className="w-3.5 h-3.5" />
-            Edit
+            <Settings2 className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -161,7 +161,12 @@ router.get('/me', requireAuth, async (req, res, next) => {
 /** PATCH /auth/me (update profile) */
 router.patch('/me', requireAuth, async (req, res, next) => {
   try {
-    const { name, email, password } = req.body as { name?: string; email?: string; password?: string };
+    const { name, email, password, onboarding } = req.body as { 
+      name?: string; 
+      email?: string; 
+      password?: string;
+      onboarding?: { tourDone?: boolean; checklist?: string[] };
+    };
     const updateData: Record<string, unknown> = {};
 
     if (name?.trim()) updateData.name = name.trim();
@@ -174,6 +179,13 @@ router.patch('/me', requireAuth, async (req, res, next) => {
     
     if (password) {
       updateData.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    }
+
+    if (onboarding?.tourDone !== undefined) {
+      updateData['onboarding.tourDone'] = onboarding.tourDone;
+    }
+    if (onboarding?.checklist) {
+      updateData['onboarding.checklist'] = onboarding.checklist;
     }
 
     if (Object.keys(updateData).length === 0) {

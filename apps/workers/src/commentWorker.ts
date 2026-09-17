@@ -340,6 +340,17 @@ async function processPostback(job: Job): Promise<void> {
     { stage: 'completed', lastOutboundAt: new Date() }
   );
 
+  // Log link tap for analytics
+  await MessageLogModel.create({
+    igId,
+    recipientId: participantId,
+    automationId: automation._id,
+    type: 'link_tap',
+    payloadJson: { postback: payload },
+    status: 'sent', // logically 'sent' means the event happened
+    attempts: 1,
+  });
+
   // Increment linkTaps counter
   await AutomationModel.updateOne(
     { _id: automation._id },

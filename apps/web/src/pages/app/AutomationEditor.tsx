@@ -88,16 +88,16 @@ export default function AutomationEditor() {
     <div className="layout-container py-6 md:py-8 h-[calc(100dvh-60px)] md:h-[100dvh] overflow-hidden flex flex-col">
       {/* ── Top Bar ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 flex-shrink-0">
-         <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-2 rounded-xl bg-theme-surface border border-theme-border text-theme-text-secondary hover:text-theme-text-primary transition-colors">
+         <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => navigate(-1)} className="p-2 rounded-xl bg-theme-surface border border-theme-border text-theme-text-secondary hover:text-theme-text-primary transition-colors flex-shrink-0">
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div>
-              <h1 className="text-xl font-display font-semibold text-theme-text-primary">Automation Editor</h1>
-              <div className="flex items-center gap-2 text-xs font-medium text-theme-text-secondary">
-                 <span>Reels</span>
-                 <ChevronRight className="w-3 h-3" />
-                 <span className="text-theme-text-primary truncate max-w-[150px]">{name}</span>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-display font-semibold text-theme-text-primary truncate">Automation Editor</h1>
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-theme-text-secondary">
+                 <span className="flex-shrink-0">Reels</span>
+                 <ChevronRight className="w-3 h-3 flex-shrink-0" />
+                 <span className="text-theme-text-primary truncate min-w-0">{name}</span>
               </div>
             </div>
          </div>

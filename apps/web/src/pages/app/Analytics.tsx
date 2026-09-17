@@ -18,7 +18,7 @@ export default function Analytics() {
     queryFn: () => api.get('/analytics/overview', { params: { from, to } }).then((r) => r.data.data),
   });
 
-  const chartData = data?.daily ?? generatePlaceholderData(range === '7d' ? 7 : range === '30d' ? 30 : 90);
+  const chartData = data?.daily ?? [];
 
   return (
     <div className="layout-container py-8 max-w-5xl" id="tour-analytics">
@@ -67,10 +67,10 @@ export default function Analytics() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
         {[
-          { label: 'DMs Sent', value: data?.totalDmsSent ?? '—', trend: '+12%', icon: Send, trendColor: 'text-emerald-500' },
-          { label: 'Link Taps', value: data?.totalLinkTaps ?? '—', trend: '+8%', icon: MousePointerClick, trendColor: 'text-emerald-500' },
-          { label: 'Click Rate', value: data?.ctr ?? '—', trend: '+3%', icon: TrendingUp, trendColor: 'text-emerald-500' },
-        ].map(({ label, value, trend, icon: Icon, trendColor }) => (
+          { label: 'DMs Sent', value: data?.totalDmsSent ?? '—', icon: Send },
+          { label: 'Link Taps', value: data?.totalLinkTaps ?? '—', icon: MousePointerClick },
+          { label: 'Click Rate', value: data?.ctr ?? '—', icon: TrendingUp },
+        ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="card p-6 animate-fade-in group hover:border-theme-text-primary/30 transition-colors">
              <div className="flex justify-between items-start mb-4">
                 <div className="w-10 h-10 rounded-xl bg-theme-bg border border-theme-border flex items-center justify-center text-theme-text-primary shadow-sm">
@@ -80,9 +80,6 @@ export default function Analytics() {
             <p className="text-display-lg text-theme-text-primary text-4xl mb-2">{value}</p>
             <div className="flex items-center justify-between">
                <p className="text-sm font-semibold text-theme-text-secondary">{label}</p>
-               <p className={clsx("text-xs font-bold flex items-center gap-1", trendColor)}>
-                 <TrendingUp className="w-3 h-3" /> {trend}
-               </p>
             </div>
           </div>
         ))}
@@ -199,10 +196,4 @@ function AutomationTable({ automations, isLoading }: { automations: Record<strin
   );
 }
 
-function generatePlaceholderData(days: number) {
-  return Array.from({ length: days }, (_, i) => ({
-    date: new Date(Date.now() - (days - i) * 86400000).toLocaleDateString('en', { month: 'short', day: 'numeric' }),
-    dmsSent: 0,
-    linkTaps: 0,
-  }));
-}
+

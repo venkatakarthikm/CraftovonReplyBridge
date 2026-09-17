@@ -12,7 +12,6 @@ type SettingsTab = 'general' | 'accounts' | 'billing' | 'danger';
 const SETTINGS_TABS = [
   { id: 'general', label: 'General', shortLabel: 'General', icon: SettingsIcon },
   { id: 'accounts', label: 'Instagram Accounts', shortLabel: 'Accounts', icon: Instagram },
-  { id: 'billing', label: 'Billing', shortLabel: 'Billing', icon: CreditCard },
   { id: 'danger', label: 'Danger Zone', shortLabel: 'Danger', icon: AlertTriangle },
 ];
 
@@ -107,25 +106,6 @@ export default function Settings() {
 
       {/* ── Right Content Area ── */}
       <div className="flex-1 max-w-2xl">
-        {/* ── Mobile Horizontal Tab Strip ── */}
-        <div className="md:hidden flex overflow-x-auto no-scrollbar gap-2 mb-6 border-b border-theme-border pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:border-0 sm:pb-0">
-          {SETTINGS_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={clsx(
-                'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 border',
-                activeTab === tab.id
-                  ? 'bg-theme-text-primary text-theme-bg border-theme-text-primary shadow-sm'
-                  : 'bg-theme-surface text-theme-text-secondary hover:text-theme-text-primary border-theme-border'
-              )}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.shortLabel}
-            </button>
-          ))}
-        </div>
-
         {activeTab === 'general' && (
           <div className="space-y-8 animate-fade-in">
             {/* Theme Settings */}
@@ -249,40 +229,44 @@ export default function Settings() {
 
               <div className="space-y-3">
                 {accounts?.map((account: any) => (
-                  <div key={account._id} className="flex items-center gap-4 p-4 rounded-xl border border-theme-border bg-theme-bg">
-                    <div className="w-10 h-10 rounded-full bg-gradient-ig flex items-center justify-center text-white flex-shrink-0">
-                      <Instagram className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-theme-text-primary">@{account.username}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="flex items-center gap-1.5 text-xs text-theme-text-secondary">
-                          <span className={clsx(
-                            'w-2 h-2 rounded-full',
-                            account.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
-                          )} />
-                          {account.status === 'active' ? 'Active' : 'Expired'}
-                        </span>
-                        <span className="text-xs text-theme-text-secondary bg-theme-border px-1.5 py-0.5 rounded-md">
-                          {account.accountType}
-                        </span>
+                  <div key={account._id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-theme-border bg-theme-bg">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-gradient-ig flex items-center justify-center text-white flex-shrink-0">
+                        <Instagram className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-theme-text-primary truncate">@{account.username}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs text-theme-text-secondary whitespace-nowrap">
+                            <span className={clsx(
+                              'w-2 h-2 rounded-full flex-shrink-0',
+                              account.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+                            )} />
+                            {account.status === 'active' ? 'Active' : 'Expired'}
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-theme-text-secondary bg-theme-border px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                            {account.accountType}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2 pt-3 sm:pt-0 border-t border-theme-border sm:border-0 justify-end sm:justify-start">
                       <button
                         onClick={() => refreshMutation.mutate(account._id)}
                         disabled={refreshMutation.isPending}
-                        className="btn-ghost"
+                        className="btn-ghost flex-1 sm:flex-none justify-center"
                         title="Refresh token"
                       >
                         <RefreshCw className="w-4 h-4" />
+                        <span className="sm:hidden text-xs font-medium ml-2">Refresh</span>
                       </button>
                       <button
                         onClick={() => disconnectMutation.mutate(account._id)}
-                        className="btn-ghost hover:text-red-500 hover:bg-red-500/10"
+                        className="btn-ghost hover:text-red-500 hover:bg-red-500/10 flex-1 sm:flex-none justify-center"
                         title="Disconnect"
                       >
                         <Trash2 className="w-4 h-4" />
+                        <span className="sm:hidden text-xs font-medium ml-2">Remove</span>
                       </button>
                     </div>
                   </div>
@@ -292,24 +276,7 @@ export default function Settings() {
           </div>
         )}
 
-        {activeTab === 'billing' && (
-          <div className="card p-6 animate-fade-in">
-            <h2 className="text-title mb-1">Plan & Billing</h2>
-            <p className="text-sm text-theme-text-secondary mb-6">Manage your subscription.</p>
-            
-            <div className="flex items-center justify-between p-5 rounded-xl border border-theme-border bg-theme-bg">
-              <div>
-                <p className="font-semibold text-theme-text-primary text-lg capitalize">{user?.plan} Plan</p>
-                <p className="text-sm text-theme-text-secondary mt-1">
-                  {user?.plan === 'free' ? 'Limited to 14 days and basic features.' : 'Active subscription.'}
-                </p>
-              </div>
-              {user?.plan === 'free' && (
-                <button className="btn-primary">Upgrade</button>
-              )}
-            </div>
-          </div>
-        )}
+
 
         {activeTab === 'danger' && (
           <div className="card p-6 animate-fade-in border-red-500/20 bg-red-500/5">
