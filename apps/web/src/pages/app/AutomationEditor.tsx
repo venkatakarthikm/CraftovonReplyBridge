@@ -87,7 +87,7 @@ export default function AutomationEditor() {
   return (
     <div className="layout-container py-6 md:py-8 h-[calc(100dvh-60px)] md:h-[100dvh] overflow-hidden flex flex-col">
       {/* ── Top Bar ── */}
-      <div className="flex items-center justify-between mb-6 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 flex-shrink-0">
          <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="p-2 rounded-xl bg-theme-surface border border-theme-border text-theme-text-secondary hover:text-theme-text-primary transition-colors">
               <ArrowLeft className="w-4 h-4" />
@@ -105,7 +105,7 @@ export default function AutomationEditor() {
            id="automation-save"
            onClick={handleSave}
            disabled={saveMutation.isPending || !link || !igAccountId || isLoading}
-           className="btn-primary shadow-[0_4px_14px_rgba(225,48,108,0.2)]"
+           className="btn-primary w-full sm:w-auto justify-center shadow-[0_4px_14px_rgba(225,48,108,0.2)]"
          >
            <Save className="w-4 h-4" />
            {saveMutation.isPending ? 'Saving...' : existing ? 'Update Automation' : 'Activate Automation'}

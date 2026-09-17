@@ -98,7 +98,7 @@ export class GraphMediaClient {
       null, // no JSON body
       {
         params: {
-          subscribed_fields: ['comments', 'messages', 'messaging_postbacks', 'message_echoes'].join(','),
+          subscribed_fields: ['comments', 'messages', 'messaging_postbacks'].join(','),
         },
       }
     );

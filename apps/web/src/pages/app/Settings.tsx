@@ -107,6 +107,25 @@ export default function Settings() {
 
       {/* ── Right Content Area ── */}
       <div className="flex-1 max-w-2xl">
+        {/* ── Mobile Horizontal Tab Strip ── */}
+        <div className="md:hidden flex overflow-x-auto no-scrollbar gap-2 mb-6 border-b border-theme-border pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:border-0 sm:pb-0">
+          {SETTINGS_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={clsx(
+                'flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 border',
+                activeTab === tab.id
+                  ? 'bg-theme-text-primary text-theme-bg border-theme-text-primary shadow-sm'
+                  : 'bg-theme-surface text-theme-text-secondary hover:text-theme-text-primary border-theme-border'
+              )}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.shortLabel}
+            </button>
+          ))}
+        </div>
+
         {activeTab === 'general' && (
           <div className="space-y-8 animate-fade-in">
             {/* Theme Settings */}

@@ -88,7 +88,7 @@ export default function AppLayout() {
 
         {/* Brand/Logo */}
         <div className="px-6 py-6 border-b border-theme-border/50">
-          <Link to="/" className={clsx("flex items-center gap-3 group", isSidebarCollapsed ? "justify-center px-0" : "px-2")}>
+          <Link to="/dashboard" className={clsx("flex items-center gap-3 group", isSidebarCollapsed ? "justify-center px-0" : "px-2")}>
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-theme-border flex-shrink-0">
                <img src="/logo.png" alt="ReplyBridge" className="w-full h-full object-cover" />
             </div>
@@ -259,36 +259,17 @@ function MobileBottomNav() {
         {/* Settings Nav */}
         <nav 
           className={clsx(
-            "absolute inset-0 flex items-center justify-between px-2 transition-all duration-300 ease-out",
+            "absolute inset-0 flex items-center justify-center px-4 transition-all duration-300 ease-out",
             isSettings ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
           )}
         >
            <button 
              onClick={() => navigate('/dashboard')} 
-             className="flex flex-col items-center justify-center w-14 py-2 rounded-xl text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/20 transition-colors"
+             className="flex items-center justify-center w-full py-3 rounded-xl bg-theme-border/20 text-theme-text-primary hover:bg-theme-border/40 transition-colors font-medium text-sm gap-2"
            >
-              <ChevronLeft className="w-5 h-5 mb-1" />
-              <span className="text-[10px] font-medium tracking-tight">Back</span>
+              <ChevronLeft className="w-5 h-5" />
+              Return to Dashboard
            </button>
-           <div className="w-[1px] h-8 bg-theme-border mx-1"></div>
-           {SETTINGS_TABS.map((tab) => {
-              const isActive = activeSettingsTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setSearchParams({ tab: tab.id })}
-                  className={clsx(
-                    'flex flex-col items-center justify-center flex-1 py-2 rounded-xl transition-all duration-200 mx-0.5',
-                    isActive 
-                      ? 'text-theme-text-primary bg-theme-border/30' 
-                      : 'text-theme-text-secondary hover:text-theme-text-primary hover:bg-theme-border/10'
-                  )}
-                >
-                  <tab.icon className={clsx("w-5 h-5 mb-1 transition-transform", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={clsx("text-[9px] tracking-tight truncate w-full text-center px-0.5", isActive ? "font-bold" : "font-medium")}>{tab.shortLabel}</span>
-                </button>
-              );
-           })}
         </nav>
       </div>
     </div>
