@@ -47,25 +47,27 @@ export class GraphMediaClient {
 
   /** Fetch insights for a specific Reel */
   async getReelInsights(mediaId: string): Promise<Record<string, number>> {
-    try {
-      const res = await this.client.get<{ data: { name: string; values: { value: number }[] }[] }>(
-        `/${mediaId}/insights`,
-        {
-          params: {
-            metric: 'comments,likes,plays,reach,saved,shares,ig_reels_avg_watch_time,ig_reels_video_view_completion_rate',
-          },
-        }
-      );
-      const insights: Record<string, number> = {};
-      for (const item of res.data.data) {
-        insights[item.name] = item.values[0]?.value ?? 0;
+  try {
+    const res = await this.client.get<{ data: { name: string; values: { value: number }[] }[] }>(
+      `/${mediaId}/insights`,
+      {
+        params: {
+          metric: 'comments,likes,views,reach,saved,shares,total_interactions,ig_reels_avg_watch_time,ig_reels_video_view_total_time',
+        },
       }
-      return insights;
-    } catch (e) {
-      // Return empty if insights are not available (e.g. not a Reel, or no permissions)
-      return {};
+    );
+    const insights: Record<string, number> = {};
+    for (const item of res.data.data) {
+      insights[item.name] = item.values[0]?.value ?? 0;
     }
+    return insights;
+  } catch (e: any) {
+    // Log the real error instead of silently hiding it - this exact pattern
+    // (silent catch) hid the webhook subscription bug for weeks earlier.
+    console.error('getReelInsights failed for media', mediaId, e.response?.data || e.message);
+    return {};
   }
+}
 
   /**
    * Refresh a long-lived token.
