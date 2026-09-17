@@ -16,6 +16,7 @@ export interface IMedia extends Document {
   source: 'backfill' | 'auto';  // auto = first seen via webhook
   automationCount: number;        // denormalized counter for reels list UI
   insights?: Record<string, number>;
+  insightsError?: { code?: number; message?: string; fbtrace_id?: string };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +43,7 @@ const MediaSchema = new Schema<IMedia>(
     },
     automationCount: { type: Number, default: 0 },
     insights: { type: Schema.Types.Mixed, default: {} },
+    insightsError: { type: Schema.Types.Mixed, default: null },
   },
   { timestamps: true }
 );

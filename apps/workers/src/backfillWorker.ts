@@ -69,6 +69,25 @@ async function backfillMedia(job: Job): Promise<void> {
     for (const item of items) {
       const mediaType = mapMediaType(item);
 
+      let insightsRes: Record<string, number> | { _error: true; code?: number; message?: string; fbtrace_id?: string } | undefined;
+      insightsRes = await mediaClient.getMediaInsights(item.id, item.media_product_type);
+
+      const setPayload: any = {
+        type: mediaType,
+        caption: item.caption ?? '',
+        permalink: item.permalink ?? '',
+        thumbnailUrl: item.thumbnail_url ?? '',
+      };
+      
+      if (insightsRes) {
+        if ('_error' in insightsRes) {
+          setPayload.insightsError = insightsRes;
+        } else {
+          setPayload.insights = insightsRes;
+          setPayload.insightsError = null;
+        }
+      }
+
       try {
         await MediaModel.updateOne(
           { igId, mediaId: item.id },
@@ -82,12 +101,7 @@ async function backfillMedia(job: Job): Promise<void> {
               commentCount: 0,
               automationCount: 0,
             },
-            $set: {
-              type: mediaType,
-              caption: item.caption ?? '',
-              permalink: item.permalink ?? '',
-              thumbnailUrl: item.thumbnail_url ?? '',
-            }
+            $set: setPayload,
           },
           { upsert: true }
         );

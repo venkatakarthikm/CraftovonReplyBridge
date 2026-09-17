@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Download, TrendingUp, Calendar, MousePointerClick, MessageCircle, Send } from 'lucide-react';
 import {
@@ -10,15 +10,39 @@ import { clsx } from 'clsx';
 export default function Analytics() {
   const [range, setRange] = useState<'7d' | '30d' | '90d'>('30d');
 
-  const from = new Date(Date.now() - (range === '7d' ? 7 : range === '30d' ? 30 : 90) * 86400000).toISOString();
-  const to = new Date().toISOString();
+  // Freeze from/to so queryKey is stable across renders — only recomputes when range changes
+  const { from, to } = useMemo(() => {
+    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    const toDate = new Date();
+    return {
+      from: new Date(toDate.getTime() - days * 86400000).toISOString(),
+      to: toDate.toISOString(),
+    };
+  }, [range]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['analytics', from, to],
+    queryKey: ['analytics', range],
     queryFn: () => api.get('/analytics/overview', { params: { from, to } }).then((r) => r.data.data),
   });
 
   const chartData = data?.daily ?? [];
+
+  // CSV export via api client (sends Authorization header) then triggers browser download
+  const handleExportCsv = async () => {
+    try {
+      const res = await api.get('/analytics/export.csv', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'replybridge-analytics.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('CSV export failed:', e);
+    }
+  };
 
   return (
     <div className="layout-container py-8 max-w-5xl" id="tour-analytics">
@@ -52,15 +76,14 @@ export default function Analytics() {
             })}
           </div>
           
-          {/* CSV export */}
-          <a
-            href={`${(import.meta as any).env.VITE_API_URL || '/api/v1'}/analytics/export.csv`}
+          {/* CSV export — fetches via api client with auth header, then triggers download */}
+          <button
+            onClick={handleExportCsv}
             className="btn-secondary py-2"
-            download
           >
             <Download className="w-4 h-4" />
             Export CSV
-          </a>
+          </button>
         </div>
       </div>
 

@@ -45,29 +45,61 @@ export class GraphMediaClient {
     return res.data;
   }
 
-  /** Fetch insights for a specific Reel */
-  async getReelInsights(mediaId: string): Promise<Record<string, number>> {
-  try {
-    const res = await this.client.get<{ data: { name: string; values: { value: number }[] }[] }>(
-      `/${mediaId}/insights`,
-      {
-        params: {
-          metric: 'comments,likes,views,reach,saved,shares,total_interactions,ig_reels_avg_watch_time,ig_reels_video_view_total_time',
-        },
+  /** Fetch insights for a specific Media item with progressive degradation */
+  async getMediaInsights(mediaId: string, mediaProductType?: string): Promise<Record<string, number> | { _error: true; code?: number; message?: string; fbtrace_id?: string }> {
+    // 1. Determine primary metric set based on media_product_type
+    const product = mediaProductType?.toUpperCase() || 'FEED';
+    let primaryMetrics = 'comments,likes,views,reach,saved,shares,total_interactions,impressions';
+    if (product === 'REELS' || product === 'REEL') {
+      primaryMetrics = 'comments,likes,views,reach,saved,shares,total_interactions,ig_reels_avg_watch_time,ig_reels_video_view_total_time';
+    } else if (product === 'STORY') {
+      primaryMetrics = 'views,reach,shares,total_interactions,impressions';
+    }
+
+    const fallbackMetrics = 'views,likes,comments,reach';
+
+    try {
+      // Attempt 1: Full primary set
+      const res = await this.client.get<{ data: { name: string; values: { value: number }[] }[] }>(
+        `/${mediaId}/insights`,
+        { params: { metric: primaryMetrics } }
+      );
+      return this.parseInsights(res.data.data);
+    } catch (e1: any) {
+      const err1 = e1.response?.data?.error || e1;
+      console.warn(`Primary insights fetch failed for ${mediaId} (${product}):`, err1.message || err1);
+
+      try {
+        // Attempt 2: Minimal fallback set
+        const res2 = await this.client.get<{ data: { name: string; values: { value: number }[] }[] }>(
+          `/${mediaId}/insights`,
+          { params: { metric: fallbackMetrics } }
+        );
+        return this.parseInsights(res2.data.data);
+      } catch (e2: any) {
+        const err2 = e2.response?.data?.error || e2;
+        console.error(`Fallback insights fetch failed for ${mediaId}:`, err2.message || err2);
+        
+        // Return explicit error object instead of silent {}
+        return {
+          _error: true,
+          code: err2.code,
+          message: err2.message,
+          fbtrace_id: err2.fbtrace_id,
+        };
       }
-    );
+    }
+  }
+
+  private parseInsights(data: { name: string; values: { value: number }[] }[]): Record<string, number> {
     const insights: Record<string, number> = {};
-    for (const item of res.data.data) {
-      insights[item.name] = item.values[0]?.value ?? 0;
+    for (const item of data) {
+      if (item.values && item.values.length > 0 && typeof item.values[0]?.value === 'number') {
+        insights[item.name] = item.values[0]?.value;
+      }
     }
     return insights;
-  } catch (e: any) {
-    // Log the real error instead of silently hiding it - this exact pattern
-    // (silent catch) hid the webhook subscription bug for weeks earlier.
-    console.error('getReelInsights failed for media', mediaId, e.response?.data || e.message);
-    return {};
   }
-}
 
   /**
    * Refresh a long-lived token.

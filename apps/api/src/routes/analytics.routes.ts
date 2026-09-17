@@ -2,7 +2,7 @@
 // Analytics endpoints: overview, per-automation, CSV export
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import { MessageLogModel, AutomationModel, UsageCounterModel, IgAccountModel } from '@replybridge/db';
+import { MessageLogModel, AutomationModel, IgAccountModel } from '@replybridge/db';
 import { Types } from 'mongoose';
 
 const router = Router();
@@ -22,20 +22,27 @@ router.get('/overview', async (req, res, next) => {
     todayStart.setHours(0, 0, 0, 0);
 
     const [dmsSentToday, commentsMatchedToday, linkTapsToday] = await Promise.all([
-      // These would normally aggregate over MessageLog for the user's automations
-      // Simplified: use UsageCounter for the current month
-      UsageCounterModel.aggregate([
-        { $match: { userId, month: new Date().toISOString().slice(0, 7) } },
-        { $group: { _id: null, total: { $sum: '$dmsSent' } } },
-      ]).then((r) => r[0]?.total ?? 0),
-      UsageCounterModel.aggregate([
-        { $match: { userId, month: new Date().toISOString().slice(0, 7) } },
-        { $group: { _id: null, total: { $sum: '$commentsMatched' } } },
-      ]).then((r) => r[0]?.total ?? 0),
-      UsageCounterModel.aggregate([
-        { $match: { userId, month: new Date().toISOString().slice(0, 7) } },
-        { $group: { _id: null, total: { $sum: '$linkTaps' } } },
-      ]).then((r) => r[0]?.total ?? 0),
+      // Count today's DMs (excluding link_tap events)
+      MessageLogModel.countDocuments({
+        automationId: { $in: (await AutomationModel.find({ userId }).select('_id').lean()).map((a) => a._id) },
+        createdAt: { $gte: todayStart },
+        status: 'sent',
+        type: { $ne: 'link_tap' },
+      }),
+      // Count today's matched comments via CommentEventModel
+      MessageLogModel.countDocuments({
+        automationId: { $in: (await AutomationModel.find({ userId }).select('_id').lean()).map((a) => a._id) },
+        createdAt: { $gte: todayStart },
+        status: 'sent',
+        type: 'private_reply',
+      }),
+      // Count today's link taps
+      MessageLogModel.countDocuments({
+        automationId: { $in: (await AutomationModel.find({ userId }).select('_id').lean()).map((a) => a._id) },
+        createdAt: { $gte: todayStart },
+        status: 'sent',
+        type: 'link_tap',
+      }),
     ]);
 
     const activeAutomations = await AutomationModel.countDocuments({ userId, enabled: true });

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
 
 type FilterMode = 'all' | 'active' | 'inactive' | 'none';
-type SortMode = 'postedAt' | 'plays' | 'reach' | 'likes' | 'comments';
+type SortMode = 'postedAt' | 'views' | 'reach' | 'likes' | 'comments';
 
 export default function Reels() {
   const [search, setSearch] = useState('');
@@ -114,7 +114,7 @@ export default function Reels() {
              onChange={(e) => setSort(e.target.value as SortMode)}
            >
              <option value="postedAt">Most Recent</option>
-             <option value="plays">Most Plays</option>
+             <option value="views">Most Views</option>
              <option value="reach">Highest Reach</option>
              <option value="likes">Most Likes</option>
              <option value="comments">Most Comments</option>

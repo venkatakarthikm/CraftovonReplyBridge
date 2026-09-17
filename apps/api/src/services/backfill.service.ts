@@ -26,10 +26,24 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
 
     for (const item of items) {
       const mediaType = mapMediaType(item);
-      let insights: Record<string, number> | undefined;
+      let insightsRes: Record<string, number> | { _error: true; code?: number; message?: string; fbtrace_id?: string } | undefined;
 
-      if (mediaType === 'REEL') {
-        insights = await mediaClient.getReelInsights(item.id);
+      insightsRes = await mediaClient.getMediaInsights(item.id, item.media_product_type);
+
+      const setPayload: any = {
+        type: mediaType,
+        caption: item.caption ?? '',
+        permalink: item.permalink ?? '',
+        thumbnailUrl: item.thumbnail_url ?? '',
+      };
+      
+      if (insightsRes) {
+        if ('_error' in insightsRes) {
+          setPayload.insightsError = insightsRes;
+        } else {
+          setPayload.insights = insightsRes;
+          setPayload.insightsError = null;
+        }
       }
 
       try {
@@ -45,13 +59,7 @@ export async function backfillMediaSync(igAccountId: string, igId: string): Prom
               commentCount: 0,
               automationCount: 0,
             },
-            $set: {
-              type: mediaType,
-              caption: item.caption ?? '',
-              permalink: item.permalink ?? '',
-              thumbnailUrl: item.thumbnail_url ?? '',
-              ...(insights && Object.keys(insights).length > 0 ? { insights } : {}),
-            }
+            $set: setPayload,
           },
           { upsert: true }
         );
